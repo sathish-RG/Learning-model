@@ -1,0 +1,49 @@
+@import "tailwindcss";
+
+/* The `dark:` variant follows the `.dark` class on <html> (set by default) */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/*
+ * Semantic color tokens. Components use these (bg-canvas, text-muted, border-line, ...)
+ * instead of raw palette colors, so both themes come from a single set of class names.
+ */
+@theme {
+  --color-canvas: #fafafa;
+  --color-surface: #ffffff;
+  --color-surface-muted: #f4f4f5;
+  --color-line: #e4e4e7;
+  --color-fg: #18181b;
+  --color-muted: #71717a;
+  --color-accent: #059669;
+  --color-accent-soft: #d1fae5;
+  --color-accent-fg: #ffffff;
+  --color-streak: #ea580c;
+}
+
+@layer base {
+  :root {
+    color-scheme: light;
+  }
+
+  .dark {
+    color-scheme: dark;
+    --color-canvas: #09090b;
+    --color-surface: #111113;
+    --color-surface-muted: #1c1c1f;
+    --color-line: #27272a;
+    --color-fg: #f4f4f5;
+    --color-muted: #a1a1aa;
+    --color-accent: #10b981;
+    --color-accent-soft: rgb(16 185 129 / 0.12);
+    --color-accent-fg: #04120c;
+    --color-streak: #fb923c;
+  }
+
+  body {
+    @apply bg-canvas text-fg antialiased;
+  }
+
+  :focus-visible {
+    @apply outline-2 outline-offset-2 outline-accent;
+  }
+}

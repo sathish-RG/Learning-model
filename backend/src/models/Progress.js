@@ -7,7 +7,16 @@ const progressSchema = new mongoose.Schema(
     user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
     topic: { type: mongoose.Schema.Types.ObjectId, ref: 'Topic', required: true },
     status: { type: String, enum: PROGRESS_STATUSES, default: 'pending' },
-    userSavedCode: { type: String, default: '' },
+    // The learner's latest version of each editable file
+    savedFiles: {
+      type: [
+        new mongoose.Schema(
+          { filename: { type: String, required: true }, content: { type: String, default: '' } },
+          { _id: false },
+        ),
+      ],
+      default: [],
+    },
     completedAt: { type: Date, default: null },
     // XP is granted once per topic, on its first completion; xpAwardedAt marks the claim
     xpAwardedAt: { type: Date, default: null },

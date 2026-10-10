@@ -53,6 +53,9 @@ export default function PracticePanel({ topic, onCompleted }) {
       visibleFiles: topic.files.filter((f) => !f.hidden).map((f) => f.filename),
       // Open on the first file the learner can edit
       activeFile: editable[0],
+      // Start the editor and preview right away, even while the learner is still reading
+      // the mission above them (the default waits until they scroll into view)
+      initMode: 'immediate',
     }),
     [topic.files, editable],
   );

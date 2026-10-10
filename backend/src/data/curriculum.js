@@ -22,14 +22,32 @@ const PHASES = [
     templateType: 'static',
     files: [{ filename: '/index.html' }],
     lessons: [
-      ['your-first-web-page', 'Your First Web Page', 'Write a valid page skeleton (doctype, html, head, title, body) with one heading and one paragraph.'],
-      ['text-and-headings', 'Text & Headings', 'Mark up a short article with a correct h1–h3 order, paragraphs, strong/em and a blockquote.'],
-      ['links-and-lists', 'Links & Lists', 'Build a site menu (a list of links) and a numbered recipe with a nested ingredients list.'],
-      ['images-and-media', 'Images & Media', 'Build a captioned photo gallery with meaningful alt text, plus an embedded video.'],
-      ['html-tables', 'Tables', 'Build an accessible weekly timetable with a header row, th scope and one merged cell.'],
-      ['forms-inputs-and-labels', 'Forms I: Inputs & Labels', 'Build a sign-up form where every input (text, email, password, date) has a linked label.'],
-      ['forms-choices-and-validation', 'Forms II: Choices & Validation', 'Build a survey with a dropdown, radio groups, checkboxes and a textarea, using built-in validation.'],
-      ['semantic-html-and-accessibility', 'Semantic HTML & Accessibility', 'Turn a page of plain divs into proper header, nav, main, article, aside and footer sections.'],
+      ['your-first-web-page', 'Your First Web Page', 'Write a valid page skeleton (doctype, html, head, title, body) with one heading and one paragraph.',
+        { subtopics: ['Tags & elements', 'Page skeleton', 'head vs body', 'Nesting', 'Comments'] }],
+      ['text-and-headings', 'Text & Headings', 'Mark up a short article with a correct h1–h3 order, paragraphs, strong/em and a blockquote.',
+        { subtopics: ['h1–h6', 'Paragraphs & whitespace', 'strong & em', 'Quotes', 'Entities'] }],
+      ['links-and-lists', 'Links & Lists', 'Build a site menu (a list of links) and a numbered recipe with a nested ingredients list.',
+        { subtopics: ['Links & href', 'Absolute vs relative URLs', 'Jump links', 'ul, ol & li', 'Nested & description lists'] }],
+      ['images-and-media', 'Images & Media', 'Build a captioned photo gallery with meaningful alt text, plus an embedded video.',
+        { subtopics: ['img & src', 'alt text', 'width & height', 'figure & figcaption', 'video & audio'] }],
+      ['html-tables', 'Tables', 'Build an accessible weekly timetable with a header row, th scope and one merged cell.',
+        { subtopics: ['tr, td & th', 'caption', 'thead, tbody & tfoot', 'scope', 'colspan & rowspan'] }],
+      ['forms-inputs-and-labels', 'Forms I: Inputs & Labels', 'Build a sign-up form where every input (text, email, password, date) has a linked label.',
+        { subtopics: ['form & button', 'Labels', 'Input types', 'name', 'autocomplete'] }],
+      ['forms-choices-and-validation', 'Forms II: Choices & Validation', 'Build a survey with a dropdown, radio groups, checkboxes and a textarea, using built-in validation.',
+        { subtopics: ['Radio buttons', 'Checkboxes', 'select & textarea', 'fieldset & legend', 'Built-in validation'] }],
+      ['semantic-html-and-accessibility', 'Semantic HTML & Accessibility', 'Turn a page of plain divs into proper header, nav, main, article, aside and footer sections.',
+        { subtopics: ['Landmarks', 'article vs section', 'time & address', 'Real buttons', 'Accessibility checklist'] }],
+    ],
+    // HTML only: the first time every Phase 1 skill is combined
+    checkpoint: [
+      'checkpoint-task-manager-html',
+      'Checkpoint A: Task Manager Pro in HTML',
+      'Combine everything from Lessons 1–8 to build the complete structure of Task Manager Pro.',
+      {
+        milestone: 'The complete HTML structure of Task Manager Pro: header and menu, task list, add-task form, stats table and footer.',
+        subtopics: ['Planning a page', 'Landmarks', 'Lists & links', 'Forms & validation', 'Tables', 'Accessibility check'],
+      },
     ],
   },
   {
@@ -50,12 +68,6 @@ const PHASES = [
       ['transitions-transforms-and-animations', 'Transitions, Transforms & Animations', 'Add smooth hover effects to buttons and build a loading spinner with a keyframe animation.'],
       // Tailwind is written as classes in the HTML, so here the HTML is the editable file
       ['tailwind-css', 'Tailwind CSS', 'Rebuild an earlier card design using only Tailwind classes, with no CSS file.', { files: [{ filename: '/index.html' }] }],
-    ],
-    checkpoint: [
-      'checkpoint-static-ui',
-      'Checkpoint A: Task Manager Pro UI',
-      'Combine HTML and CSS for the first time to build the static Task Manager Pro interface.',
-      { files: [{ filename: '/index.html' }, { filename: '/styles.css' }], milestone: 'The static Task Manager Pro interface: layout, task cards and forms.' },
     ],
   },
   {

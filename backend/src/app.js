@@ -28,7 +28,9 @@ app.use(
   '/api',
   rateLimit({
     windowMs: 15 * 60 * 1000,
-    limit: 300,
+    // Development traffic (hot reloads, many tabs) all comes from one IP, so allow more there.
+    // The stricter login/register limit in authRoutes applies everywhere.
+    limit: env.isProduction ? 300 : 3000,
     standardHeaders: 'draft-8',
     legacyHeaders: false,
     message: { success: false, message: 'Too many requests, please try again later' },

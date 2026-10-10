@@ -1,4 +1,5 @@
 import Markdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 
 // Typography for lesson Markdown. react-markdown doesn't render raw HTML, so content can't inject markup.
 const PROSE = [
@@ -8,7 +9,11 @@ const PROSE = [
   'prose-code:rounded-md prose-code:bg-surface-muted prose-code:px-1.5 prose-code:py-0.5 prose-code:font-semibold',
   'prose-code:before:content-none prose-code:after:content-none',
   'prose-pre:rounded-xl prose-pre:border prose-pre:border-line prose-pre:bg-zinc-900 [&_pre_code]:bg-transparent [&_pre_code]:p-0 [&_pre_code]:font-normal',
+  'prose-table:my-4 prose-th:text-left prose-th:font-extrabold',
 ].join(' ');
+
+// GitHub-flavored Markdown: tables (used in lessons), strikethrough and task lists
+const remarkPlugins = [remarkGfm];
 
 const components = {
   a: ({ node: _node, ...props }) => <a target="_blank" rel="noreferrer" {...props} />,
@@ -17,7 +22,9 @@ const components = {
 export default function Prose({ children, size = 'base', className = '' }) {
   return (
     <div className={`${PROSE} ${size === 'sm' ? 'prose-sm' : 'sm:prose-lg'} ${className}`}>
-      <Markdown components={components}>{children}</Markdown>
+      <Markdown remarkPlugins={remarkPlugins} components={components}>
+        {children}
+      </Markdown>
     </div>
   );
 }

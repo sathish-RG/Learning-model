@@ -10,7 +10,8 @@ import { existsSync, readFileSync } from 'node:fs';
 //   lessons/<slug>/files/<path>      starter code for each practice file, e.g. files/index.html
 //
 // A lesson is published as soon as its lesson.md exists; until then it shows as "coming soon".
-// Each phase sets the Sandpack template and the files a lesson gets (lessons can override them).
+// Each phase sets the Sandpack template, the files a lesson gets and its output panel
+// ('preview', 'console' or 'both'); lessons can override any of them.
 
 const LESSON_XP = 20;
 const CHECKPOINT_XP = 100;
@@ -94,22 +95,34 @@ const PHASES = [
     phase: 3,
     phaseTitle: 'Phase 3: JavaScript Fundamentals',
     templateType: 'vanilla',
+    // Pure JavaScript, no web page yet: results appear in the console
+    output: 'console',
     files: [{ filename: '/index.js' }],
     lessons: [
-      ['variables-types-and-operators', 'Variables, Types & Operators', 'Calculate and print values, and fix bugs caused by automatic type conversion.'],
-      ['conditionals', 'Conditionals', 'Write a grade calculator using if/else, switch and the ? : shorthand.'],
-      ['loops', 'Loops', 'Solve FizzBuzz and running totals using for, while and for...of.'],
-      ['functions-and-scope', 'Functions & Scope', 'Write small, reusable functions using default parameters, arrow functions and return.'],
-      ['arrays-and-array-methods', 'Arrays & Array Methods', 'Transform a dataset with map, filter, reduce, find and sort.'],
-      ['objects-and-json', 'Objects & JSON', 'Model a user profile as an object, then convert it to JSON text and back.'],
-      ['strings-numbers-and-dates', 'Strings, Numbers & Dates', 'Format a shopping receipt using template strings, Math and Intl.'],
-      ['errors-and-debugging', 'Errors & Debugging', 'Make a fragile parser fail gracefully with try/catch and custom errors.'],
+      ['variables-types-and-operators', 'Variables, Types & Operators', 'Calculate and print values, and fix bugs caused by automatic type conversion.',
+        { subtopics: ['console.log', 'const & let', 'Data types & typeof', 'Arithmetic operators', '=== vs =='] }],
+      ['conditionals', 'Conditionals', 'Write a grade calculator using if/else, switch and the ? : shorthand.',
+        { subtopics: ['if / else if / else', 'Truthy & falsy', 'The ternary operator', 'switch', 'Combining conditions'] }],
+      ['loops', 'Loops', 'Solve FizzBuzz and running totals using for, while and for...of.',
+        { subtopics: ['for loops', 'Running totals', 'while loops', 'for...of', 'break & continue'] }],
+      ['functions-and-scope', 'Functions & Scope', 'Write small, reusable functions using default parameters, arrow functions and return.',
+        { subtopics: ['Parameters & arguments', 'return', 'Default parameters', 'Arrow functions', 'Scope'] }],
+      ['arrays-and-array-methods', 'Arrays & Array Methods', 'Transform a dataset with map, filter, reduce, find and sort.',
+        { subtopics: ['Indexes & length', 'push, pop, shift, unshift', 'map & filter', 'find & reduce', 'Sorting numbers'] }],
+      ['objects-and-json', 'Objects & JSON', 'Model a user profile as an object, then convert it to JSON text and back.',
+        { subtopics: ['Properties', 'Dot & bracket notation', 'Nested data', 'Methods & this', 'JSON.stringify & parse'] }],
+      ['strings-numbers-and-dates', 'Strings, Numbers & Dates', 'Format a shopping receipt using template strings, Math and Intl.',
+        { subtopics: ['String methods', 'Template literals', 'Decimal surprises', 'Math', 'Intl & dates'] }],
+      ['errors-and-debugging', 'Errors & Debugging', 'Make a fragile parser fail gracefully with try/catch and custom errors.',
+        { subtopics: ['Error types', 'try / catch / finally', 'throw', 'Custom error names', 'Debugging tools'] }],
     ],
   },
   {
     phase: 4,
     phaseTitle: 'Phase 4: JavaScript in the Browser',
     templateType: 'vanilla',
+    // DOM lessons change the page and log to the console, so show both
+    output: 'both',
     // The page structure is given and locked; learners only write the JavaScript
     files: [{ filename: '/index.html', readOnly: true }, { filename: '/index.js' }],
     lessons: [
@@ -132,6 +145,7 @@ const PHASES = [
     phase: 5,
     phaseTitle: 'Phase 5: Advanced JavaScript',
     templateType: 'vanilla',
+    output: 'console',
     files: [{ filename: '/index.js' }],
     lessons: [
       ['closures-and-hoisting', 'Closures & Hoisting', "Build a counter whose value can't be changed from outside, and fix the classic loop-closure bug."],
@@ -234,6 +248,7 @@ const toTopic = (phase, lessonType) => ([slug, title, description, overrides = {
   phaseTitle: phase.phaseTitle,
   lessonType,
   templateType: phase.templateType,
+  output: phase.output ?? 'preview',
   xpReward: lessonType === 'checkpoint' ? CHECKPOINT_XP : LESSON_XP,
   files: phase.files,
   ...overrides,

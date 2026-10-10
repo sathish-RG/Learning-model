@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Events</title>
+  </head>
+  <body>
+    <section class="card">
+      <h2>Counter</h2>
+      <div class="counter">
+        <button id="decrement" type="button" aria-label="Decrease">−</button>
+        <span id="count">0</span>
+        <button id="increment" type="button" aria-label="Increase">+</button>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Greeting</h2>
+      <label for="name">Your name</label>
+      <input id="name" type="text" autocomplete="off" />
+      <p id="greeting">Hello, stranger!</p>
+    </section>
+
+    <section class="card">
+      <h2>To-do</h2>
+      <ul id="todo">
+        <li><span class="text">Learn events</span> <button class="delete" type="button" aria-label="Delete">×</button></li>
+        <li><span class="text">Practice delegation</span> <button class="delete" type="button" aria-label="Delete">×</button></li>
+        <li><span class="text">Take a break</span> <button class="delete" type="button" aria-label="Delete">×</button></li>
+      </ul>
+      <button id="add-item" type="button">+ Add task</button>
+    </section>
+
+    <script src="index.js"></script>
+  </body>
+</html>

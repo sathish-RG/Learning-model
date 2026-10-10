@@ -8,6 +8,7 @@ import { existsSync, readFileSync } from 'node:fs';
 //   lessons/<slug>/lesson.md         the "Learn" step (beginner-friendly Markdown)
 //   lessons/<slug>/instructions.md   the "Practice" mission
 //   lessons/<slug>/files/<path>      starter code for each practice file, e.g. files/index.html
+//                                    (unless the file spec gives its content inline)
 //
 // A lesson is published as soon as its lesson.md exists; until then it shows as "coming soon".
 // Each phase sets the Sandpack template, the files a lesson gets and its output panel
@@ -123,21 +124,32 @@ const PHASES = [
     templateType: 'vanilla',
     // DOM lessons change the page and log to the console, so show both
     output: 'both',
-    // The page structure is given and locked; learners only write the JavaScript
-    files: [{ filename: '/index.html', readOnly: true }, { filename: '/index.js' }],
+    // The page (HTML + CSS) is given and locked; learners only write the JavaScript, in app.js.
+    // This runtime ignores <style> in index.html's <head>, so a hidden entry file loads the CSS
+    // and then the learner's code.
+    files: [
+      { filename: '/index.html', readOnly: true },
+      { filename: '/styles.css', readOnly: true },
+      { filename: '/app.js' },
+      { filename: '/index.js', hidden: true, content: 'import "./styles.css";\nimport "./app.js";\n' },
+    ],
     lessons: [
-      ['dom-selecting-and-changing', 'The DOM: Selecting & Changing Elements', 'Show a list on the page from an array, using createElement and classList.'],
-      ['events-and-delegation', 'Events & Event Delegation', 'Make a list where items can be removed, using a single click listener on the parent.'],
-      ['forms-with-javascript', 'Forms with JavaScript', 'Validate a sign-up form with your own error messages, and stop it submitting when invalid.'],
-      ['storage-and-timers', 'Storage & Timers', 'Build a stopwatch whose laps are kept in localStorage.'],
+      ['dom-selecting-and-changing', 'The DOM: Selecting & Changing Elements', 'Show a list on the page from an array, using createElement and classList.',
+        { subtopics: ['The DOM tree', 'querySelector & querySelectorAll', 'textContent', 'classList', 'createElement & append'] }],
+      ['events-and-delegation', 'Events & Event Delegation', 'Make a list where items can be removed, using a single click listener on the parent.',
+        { subtopics: ['addEventListener', 'Common events', 'The event object', 'Bubbling', 'Event delegation'] }],
+      ['forms-with-javascript', 'Forms with JavaScript', 'Validate a sign-up form with your own error messages, and stop it submitting when invalid.',
+        { subtopics: ['The submit event', 'preventDefault', 'Reading values', 'Custom validation', 'Accessible errors'] }],
+      ['storage-and-timers', 'Storage & Timers', 'Build a stopwatch whose laps are kept in localStorage.',
+        { subtopics: ['setTimeout', 'setInterval & clearInterval', 'Measuring time', 'localStorage', 'Saving JSON'] }],
     ],
     checkpoint: [
       'checkpoint-vanilla-js',
       'Checkpoint B: Task Manager Pro in JavaScript',
       'Make Task Manager Pro work in plain JavaScript: show, add, complete and save tasks.',
       {
-        files: [{ filename: '/index.html' }, { filename: '/styles.css' }, { filename: '/index.js' }],
         milestone: 'A working Task Manager Pro in plain JavaScript that remembers tasks between visits.',
+        subtopics: ['One source of truth', 'The render pattern', 'Form handling', 'Event delegation', 'localStorage'],
       },
     ],
   },
@@ -236,7 +248,10 @@ const withContent = (topic) => {
     published: true,
     lessonContent: readText(lessonPath(topic.slug, 'lesson.md')),
     instructions: readText(lessonPath(topic.slug, 'instructions.md')),
-    files: topic.files.map((file) => ({ ...file, content: readFileSync(lessonPath(topic.slug, 'files', file.filename.slice(1)), 'utf8') })),
+    files: topic.files.map((file) => ({
+      ...file,
+      content: file.content ?? readFileSync(lessonPath(topic.slug, 'files', file.filename.slice(1)), 'utf8'),
+    })),
   };
 };
 

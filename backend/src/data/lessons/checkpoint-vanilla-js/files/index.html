@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Task Manager Pro</title>
+  </head>
+  <body>
+    <header class="site-header">
+      <h1>Task Manager Pro</h1>
+      <p id="task-count" aria-live="polite">0 tasks left</p>
+    </header>
+
+    <main class="content">
+      <section class="card" aria-labelledby="new-task-heading">
+        <h2 id="new-task-heading">Add a task</h2>
+        <form id="task-form" class="task-form" novalidate>
+          <label for="task-title">Title</label>
+          <input id="task-title" name="title" type="text" autocomplete="off" placeholder="e.g. Finish Checkpoint B" />
+          <label for="task-priority">Priority</label>
+          <select id="task-priority" name="priority">
+            <option value="low">Low</option>
+            <option value="medium" selected>Medium</option>
+            <option value="high">High</option>
+          </select>
+          <button class="button" type="submit">Add</button>
+          <p id="form-error" class="form-error" aria-live="polite"></p>
+        </form>
+      </section>
+
+      <section class="card" aria-labelledby="tasks-heading">
+        <div class="list-header">
+          <h2 id="tasks-heading">Tasks</h2>
+          <div class="filters" role="group" aria-label="Show">
+            <button class="filter" type="button" data-filter="all" aria-pressed="true">All</button>
+            <button class="filter" type="button" data-filter="active" aria-pressed="false">Active</button>
+            <button class="filter" type="button" data-filter="done" aria-pressed="false">Done</button>
+          </div>
+        </div>
+        <ul id="task-list" class="task-list"></ul>
+        <button id="clear-done" class="link-button" type="button">Clear completed</button>
+      </section>
+    </main>
+
+    <script src="index.js"></script>
+  </body>
+</html>

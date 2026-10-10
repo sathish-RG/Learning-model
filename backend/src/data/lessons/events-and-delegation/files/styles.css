@@ -1,0 +1,13 @@
+/* Given styles (locked). */
+* { box-sizing: border-box; }
+body { font-family: system-ui, sans-serif; margin: 0; padding: 16px; color: hsl(220 15% 20%); background: hsl(220 30% 97%); }
+.card { background: white; border: 2px solid hsl(220 20% 88%); border-radius: 14px; padding: 14px 18px; margin-bottom: 14px; max-width: 420px; }
+.card h2 { margin: 0 0 10px; font-size: 1.05rem; }
+button { font: inherit; cursor: pointer; border-radius: 10px; border: 2px solid hsl(220 20% 85%); background: white; padding: 6px 14px; }
+.counter { display: flex; align-items: center; gap: 14px; }
+#count { font-size: 1.75rem; font-weight: 800; min-width: 2ch; text-align: center; }
+input { font: inherit; padding: 8px 10px; border: 2px solid hsl(220 20% 85%); border-radius: 10px; width: 100%; margin-top: 4px; }
+#greeting { font-weight: 700; color: hsl(150 60% 32%); }
+#todo { list-style: none; padding: 0; margin: 0 0 10px; }
+#todo li { display: flex; justify-content: space-between; align-items: center; padding: 6px 0; border-bottom: 1px solid hsl(220 20% 92%); }
+.delete { border: 0; color: hsl(0 70% 50%); font-size: 1.25rem; padding: 0 8px; }

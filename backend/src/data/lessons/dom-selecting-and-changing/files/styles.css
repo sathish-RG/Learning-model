@@ -1,0 +1,9 @@
+/* Given styles (locked). Your JavaScript switches these classes on and off. */
+body { font-family: system-ui, sans-serif; margin: 0; padding: 24px; color: hsl(220 15% 20%); background: hsl(40 30% 97%); }
+#list { padding: 0; list-style: none; max-width: 320px; }
+#list li { background: white; border: 2px solid hsl(220 20% 88%); border-radius: 10px; padding: 10px 14px; margin-bottom: 8px; }
+.highlight { border-color: hsl(150 60% 45%) !important; background: hsl(150 60% 94%) !important; font-weight: 700; }
+.done { text-decoration: line-through; opacity: 0.55; }
+.status { color: hsl(220 10% 45%); }
+.tip { background: hsl(50 90% 88%); padding: 10px 14px; border-radius: 10px; max-width: 320px; }
+.hidden { display: none; }

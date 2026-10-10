@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Stopwatch</title>
+  </head>
+  <body>
+    <main class="card">
+      <h1>Stopwatch</h1>
+      <p id="time" aria-live="off">00:00.0</p>
+      <div class="buttons">
+        <button id="start" type="button">Start</button>
+        <button id="stop" type="button">Stop</button>
+        <button id="lap" type="button">Lap</button>
+        <button id="reset" type="button">Reset</button>
+      </div>
+      <p id="toast" aria-live="polite"></p>
+      <h2>Laps</h2>
+      <ol id="laps"></ol>
+    </main>
+
+    <script src="index.js"></script>
+  </body>
+</html>

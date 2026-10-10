@@ -19,7 +19,7 @@ export default function FormField({ id, label, error, hint, type = 'text', ...in
           type={isPassword && revealed ? 'text' : type}
           aria-invalid={Boolean(error)}
           aria-describedby={describedBy}
-          className={`w-full rounded-lg border bg-canvas px-3 py-2 text-sm transition-colors outline-none placeholder:text-muted/60 focus:border-accent focus:ring-2 focus:ring-accent/20 ${
+          className={`w-full rounded-xl border-2 bg-canvas px-3 py-2.5 text-sm transition-colors outline-none placeholder:text-muted/60 focus:border-accent focus:ring-2 focus:ring-accent/20 ${
             error ? 'border-red-500/70' : 'border-line'
           } ${isPassword ? 'pr-10' : ''}`}
           {...inputProps}

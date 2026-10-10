@@ -1,0 +1,70 @@
+import { useMemo } from 'react';
+import { useSelector } from 'react-redux';
+import {
+  SANDBOX_TEMPLATES,
+  SandpackCodeEditor,
+  SandpackLayout,
+  SandpackPreview,
+  SandpackProvider,
+} from '@codesandbox/sandpack-react';
+import MissionCard from './MissionCard';
+import EditorToolbar from '../editor/EditorToolbar';
+import PageLoader from '../ui/PageLoader';
+import ErrorState from '../ui/ErrorState';
+import useSavedCode from '../../hooks/useSavedCode';
+import { selectTheme } from '../../redux/slices/uiSlice';
+import { selectTopicXpEarned } from '../../redux/slices/progressSlice';
+
+// Extra npm packages per template (the node starters use Express)
+const TEMPLATE_DEPENDENCIES = {
+  node: { express: '^4.21.2' },
+};
+
+const providerStyle = { height: '100%', fontFamily: 'inherit' };
+
+// Step 2: the mission instructions plus the Sandpack editor and live preview.
+// Lazy-loaded by TopicView, since Sandpack is a large bundle.
+export default function PracticePanel({ topic, onCompleted }) {
+  const theme = useSelector(selectTheme);
+  const xpEarned = useSelector((state) => selectTopicXpEarned(state, topic._id));
+  const saved = useSavedCode(topic.slug);
+
+  // starterCode / saved code replaces the template's main file (/index.html, /index.js or /App.js)
+  const { main } = SANDBOX_TEMPLATES[topic.templateType];
+  const initialCode = saved.code ?? topic.starterCode;
+
+  // Sandpack resets every file (discarding unsaved edits) whenever these props change by
+  // reference, so they must stay the same objects across re-renders (theme, XP, step changes)
+  const files = useMemo(() => ({ [main]: initialCode }), [main, initialCode]);
+  const customSetup = useMemo(() => ({ dependencies: TEMPLATE_DEPENDENCIES[topic.templateType] }), [topic.templateType]);
+  const options = useMemo(() => ({ activeFile: main, visibleFiles: [main] }), [main]);
+
+  if (saved.status === 'error') {
+    return <ErrorState title="Couldn't load your saved code" message={saved.error} onRetry={saved.retry} />;
+  }
+  if (saved.status !== 'ready') return <PageLoader />;
+
+  return (
+    <SandpackProvider
+      template={topic.templateType}
+      files={files}
+      customSetup={customSetup}
+      options={options}
+      theme={theme}
+      style={providerStyle}
+    >
+      <div className="flex h-full min-h-0 flex-col gap-3 overflow-y-auto p-3 sm:p-4 lg:overflow-hidden">
+        <MissionCard markdown={topic.instructions} xpReward={topic.xpReward} xpEarned={xpEarned} />
+        <EditorToolbar topic={topic} mainFile={main} initialCode={initialCode} onCompleted={onCompleted} />
+
+        {/* Editor on top, live preview below; fills the remaining height on desktop */}
+        <div className="h-[85dvh] shrink-0 overflow-hidden rounded-2xl border-2 border-line lg:h-auto lg:min-h-0 lg:flex-1">
+          <SandpackLayout className="!h-full !flex-col !flex-nowrap !rounded-none !border-0">
+            <SandpackCodeEditor showTabs showLineNumbers wrapContent className="!min-h-0 !flex-[3_1_0%]" />
+            <SandpackPreview showOpenInCodeSandbox={false} className="!min-h-0 !flex-[2_1_0%]" />
+          </SandpackLayout>
+        </div>
+      </div>
+    </SandpackProvider>
+  );
+}

@@ -1,6 +1,6 @@
 import { createAsyncThunk, createSelector, createSlice, isAnyOf } from '@reduxjs/toolkit';
 import api from '../../utils/api';
-import { loggedOut } from './authSlice';
+import { loggedOut, xpUpdated } from './authSlice';
 
 export const fetchProgress = createAsyncThunk(
   'progress/fetchProgress',
@@ -25,9 +25,11 @@ export const saveCode = createAsyncThunk('progress/saveCode', async ({ slug, cod
   }
 });
 
-export const setTopicStatus = createAsyncThunk('progress/setTopicStatus', async ({ slug, status }, { rejectWithValue }) => {
+// Also returns xpEarned (> 0 only on a topic's first completion) and the user's new totalXP
+export const setTopicStatus = createAsyncThunk('progress/setTopicStatus', async ({ slug, status }, { dispatch, rejectWithValue }) => {
   try {
     const { data } = await api.put(`/progress/${slug}/status`, { status });
+    dispatch(xpUpdated(data.totalXP));
     return data;
   } catch (err) {
     return rejectWithValue(err.message);
@@ -79,5 +81,8 @@ export const selectCompletedTopicIds = createSelector([(state) => state.progress
 );
 
 export const selectIsTopicCompleted = (state, topicId) => state.progress.byTopicId[topicId]?.status === 'completed';
+
+// XP already earned for a topic (0 if its reward hasn't been claimed yet)
+export const selectTopicXpEarned = (state, topicId) => state.progress.byTopicId[topicId]?.xpEarned ?? 0;
 
 export default progressSlice.reducer;

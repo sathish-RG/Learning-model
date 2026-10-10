@@ -1,21 +1,27 @@
 import { Suspense, lazy } from 'react';
-import { RouterProvider, createBrowserRouter } from 'react-router-dom';
+import { Navigate, RouterProvider, createBrowserRouter, useParams } from 'react-router-dom';
 import AppLayout from './components/layout/AppLayout';
 import SessionGate from './components/auth/SessionGate';
 import RequireAuth from './components/auth/RequireAuth';
 import GuestOnly from './components/auth/GuestOnly';
 import CurriculumGate from './components/auth/CurriculumGate';
-import PageLoader from './components/ui/PageLoader';
 import Dashboard from './pages/Dashboard';
-import TopicView from './pages/TopicView';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import NotFound from './pages/NotFound';
 import ErrorPage from './pages/ErrorPage';
+import PageLoader from './components/ui/PageLoader';
 import useTheme from './hooks/useTheme';
+import { ROUTES } from './utils/constants';
 
-// Sandpack is heavy, so the editor is loaded only when a practice page is opened
-const EditorPage = lazy(() => import('./pages/EditorPage'));
+// Lesson pages pull in Markdown rendering (and later Sandpack), so they load on demand
+const TopicView = lazy(() => import('./pages/TopicView'));
+
+// Old practice URLs now open the Practice step of the topic page
+function PracticeRedirect() {
+  const { topicId } = useParams();
+  return <Navigate to={ROUTES.practice(topicId)} replace />;
+}
 
 const router = createBrowserRouter([
   {
@@ -43,19 +49,19 @@ const router = createBrowserRouter([
                 element: <AppLayout />,
                 children: [
                   { index: true, element: <Dashboard /> },
-                  { path: 'topics/:topicId', element: <TopicView /> },
                   { path: '*', element: <NotFound /> },
                 ],
               },
+              // Full-screen lesson mode (Learn -> Practice), no sidebar
               {
-                // Full-screen, distraction-free editor (no sidebar)
-                path: 'practice/:topicId',
+                path: 'topics/:topicId',
                 element: (
                   <Suspense fallback={<PageLoader fullScreen />}>
-                    <EditorPage />
+                    <TopicView />
                   </Suspense>
                 ),
               },
+              { path: 'practice/:topicId', element: <PracticeRedirect /> },
             ],
           },
         ],

@@ -46,6 +46,9 @@ const authSlice = createSlice({
     loggedOut() {
       return { ...initialState, session: 'guest' };
     },
+    xpUpdated(state, action) {
+      if (state.user) state.user.totalXP = action.payload;
+    },
     clearAuthError(state) {
       state.error = null;
       state.status = 'idle';
@@ -86,7 +89,7 @@ const authSlice = createSlice({
   },
 });
 
-export const { loggedOut, clearAuthError } = authSlice.actions;
+export const { loggedOut, xpUpdated, clearAuthError } = authSlice.actions;
 
 // Clears the cookie on the server, then the local state (even if the request fails)
 export const logout = () => async (dispatch) => {
@@ -99,5 +102,6 @@ export const logout = () => async (dispatch) => {
 
 export const selectAuth = (state) => state.auth;
 export const selectCurrentUser = (state) => state.auth.user;
+export const selectTotalXP = (state) => state.auth.user?.totalXP ?? 0;
 
 export default authSlice.reducer;

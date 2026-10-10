@@ -6,7 +6,7 @@ export const ROUTES = {
   login: '/login',
   register: '/register',
   topic: (slug) => `/topics/${slug}`,
-  practice: (slug) => `/practice/${slug}`,
+  practice: (slug) => `/topics/${slug}?step=practice`,
 };
 
 // Display names for the Topic `phase` values; the curriculum itself comes from GET /topics

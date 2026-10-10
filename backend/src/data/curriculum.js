@@ -1,5 +1,11 @@
+import { readFileSync } from 'node:fs';
+
 // The 80/20 curriculum: source of truth for the Topic collection (loaded by src/seed.js).
 // Every module adds one piece to the Task Manager Pro project.
+//
+// Lesson text lives in Markdown files, one folder per module:
+//   lessons/<slug>/lesson.md        beginner-friendly theory (the "Learn" step)
+//   lessons/<slug>/instructions.md  what to do in the editor (the "Practice" step)
 //
 // starterCode is the module's main editor file; the frontend maps templateType to it:
 //   static -> /index.html, vanilla -> /index.js, react -> /App.js, node -> /index.js
@@ -7,6 +13,7 @@
 const curriculum = [
   {
     slug: 'html-css-tailwind',
+    xpReward: 50,
     moduleOrder: 1,
     phase: 'foundations',
     title: 'HTML, CSS & Tailwind',
@@ -22,8 +29,7 @@ const curriculum = [
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
   </head>
   <body class="bg-zinc-100 font-sans">
-    <!-- TODO: turn this into a sidebar + main layout with Flexbox,
-         and lay out the task cards in a responsive Grid -->
+    <!-- TODO: follow the steps in the instructions -->
     <header class="bg-white p-4 font-semibold">Task Manager Pro</header>
     <main class="p-4">
       <article class="rounded-lg bg-white p-4 shadow-sm">Design the layout</article>
@@ -35,6 +41,7 @@ const curriculum = [
   },
   {
     slug: 'core-javascript',
+    xpReward: 50,
     moduleOrder: 2,
     phase: 'foundations',
     title: 'Core JavaScript',
@@ -65,13 +72,16 @@ const app = document.getElementById('app');
 const items = filterTasks(tasks, 'pending')
   .map((task) => \`<li>\${task.title}</li>\`)
   .join('');
-app.innerHTML = \`<h1>Task Manager Pro</h1><ul>\${items}</ul>\`;
-
-console.log(validateTaskTitle(''));
+app.innerHTML = \`
+  <h1>Task Manager Pro</h1>
+  <ul>\${items}</ul>
+  <p>Empty title check: \${validateTaskTitle('') ?? 'no error (yet!)'}</p>
+\`;
 `,
   },
   {
     slug: 'advanced-javascript',
+    xpReward: 75,
     moduleOrder: 3,
     phase: 'foundations',
     title: 'Advanced JavaScript',
@@ -108,6 +118,7 @@ loadTasks();
   },
   {
     slug: 'react-core',
+    xpReward: 75,
     moduleOrder: 4,
     phase: 'react',
     title: 'React Core',
@@ -136,6 +147,7 @@ export default function App() {
   },
   {
     slug: 'advanced-react',
+    xpReward: 100,
     moduleOrder: 5,
     phase: 'react',
     title: 'Advanced React',
@@ -169,6 +181,7 @@ export default function App() {
   },
   {
     slug: 'backend-fundamentals',
+    xpReward: 100,
     moduleOrder: 6,
     phase: 'backend',
     title: 'Backend Fundamentals',
@@ -195,6 +208,7 @@ app.listen(3000, () => console.log('Task API running on port 3000'));
   },
   {
     slug: 'database-auth',
+    xpReward: 100,
     moduleOrder: 7,
     phase: 'backend',
     title: 'Database & Auth',
@@ -233,4 +247,11 @@ app.listen(3000, () => console.log('Task API running on port 3000'));
   },
 ];
 
-export default curriculum;
+const readLesson = (slug, file) =>
+  readFileSync(new URL(`./lessons/${slug}/${file}.md`, import.meta.url), 'utf8').trim();
+
+export default curriculum.map((topic) => ({
+  ...topic,
+  lessonContent: readLesson(topic.slug, 'lesson'),
+  instructions: readLesson(topic.slug, 'instructions'),
+}));

@@ -23,6 +23,10 @@ const topicSchema = new mongoose.Schema(
     subtopics: { type: [String], default: [] },
     templateType: { type: String, required: true, enum: TEMPLATE_TYPES },
     starterCode: { type: String, default: '' },
+    // Markdown, rendered as plain text + formatting on the client (no raw HTML)
+    lessonContent: { type: String, required: true },
+    instructions: { type: String, required: true },
+    xpReward: { type: Number, default: 50, min: 0 },
   },
   {
     timestamps: true,

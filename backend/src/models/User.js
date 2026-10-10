@@ -26,6 +26,7 @@ const userSchema = new mongoose.Schema(
       // Never returned by queries unless explicitly requested with .select('+password')
       select: false,
     },
+    totalXP: { type: Number, default: 0, min: 0 },
   },
   {
     timestamps: true,

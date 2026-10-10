@@ -41,8 +41,20 @@ const seed = async () => {
       (stale.length ? ` (${stale.map((t) => t.slug).join(', ')})` : ''),
   );
 
-  const topics = await Topic.find({}, 'moduleOrder slug templateType').sort('moduleOrder').lean();
-  console.table(topics.map(({ moduleOrder, slug, templateType }) => ({ moduleOrder, slug, templateType })));
+  const topics = await Topic.find({}, 'moduleOrder slug templateType xpReward lessonContent instructions')
+    .sort('moduleOrder')
+    .lean();
+  const words = (text) => text.split(/\s+/).length;
+  console.table(
+    topics.map(({ moduleOrder, slug, templateType, xpReward, lessonContent, instructions }) => ({
+      moduleOrder,
+      slug,
+      templateType,
+      xpReward,
+      lessonWords: words(lessonContent),
+      instructionWords: words(instructions),
+    })),
+  );
 };
 
 seed()

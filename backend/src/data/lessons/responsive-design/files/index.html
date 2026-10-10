@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Wild Places</title>
+    <style>
+      /* Given: colors, spacing and a grid with a gap (you'll make it responsive in styles.css) */
+      * { box-sizing: border-box; }
+      body { margin: 0; font-family: system-ui, sans-serif; color: hsl(220 15% 20%); background: hsl(160 30% 96%); }
+      .page { padding: 16px; }
+      h1 { margin: 0 0 12px; line-height: 1.1; }
+      .gallery { display: grid; gap: 12px; margin-top: 16px; }
+      .place { background: white; border-radius: 12px; padding: 14px; border: 2px solid hsl(160 20% 85%); }
+      .place h2 { margin: 0 0 4px; font-size: 1rem; }
+      .place p { margin: 0; font-size: 0.9rem; }
+    </style>
+    <!-- Your styles load last, so they win any tie with the given styles above -->
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main class="page">
+      <h1>Wild Places</h1>
+      <p>Six places worth the journey.</p>
+      <img
+        src="https://interactive-examples.mdn.mozilla.net/media/cc0-images/elephant-660-480.jpg"
+        alt="An elephant walking through tall grass"
+        width="660"
+        height="480"
+      />
+
+      <section class="gallery">
+        <article class="place"><h2>Serengeti</h2><p>Grasslands full of wildlife.</p></article>
+        <article class="place"><h2>Western Ghats</h2><p>Misty hills and waterfalls.</p></article>
+        <article class="place"><h2>Patagonia</h2><p>Glaciers and jagged peaks.</p></article>
+        <article class="place"><h2>Great Barrier Reef</h2><p>The world's biggest coral reef.</p></article>
+        <article class="place"><h2>Sahara</h2><p>Endless golden dunes.</p></article>
+        <article class="place"><h2>Lofoten</h2><p>Fishing villages under the northern lights.</p></article>
+      </section>
+    </main>
+  </body>
+</html>

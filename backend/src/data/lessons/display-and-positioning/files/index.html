@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Course catalog</title>
+    <style>
+      /* Given: colors and spacing (you'll write display and position in styles.css) */
+      body { margin: 0; font-family: system-ui, sans-serif; background: hsl(220 30% 97%); color: hsl(220 15% 20%); }
+      .site-header { background: hsl(220 40% 25%); color: white; padding: 12px 24px; }
+      .site-header h1 { margin: 0; font-size: 1.25rem; }
+      main { max-width: 560px; margin: 0 auto; padding: 24px; }
+      .tags { padding: 0; }
+      .tags li { list-style: none; background: hsl(220 40% 90%); padding: 4px 12px; margin: 4px; border-radius: 999px; font-size: 0.875rem; }
+      .card { background: white; padding: 20px; margin: 28px 0; border-radius: 12px; border: 2px solid hsl(220 20% 88%); }
+      .badge { background: hsl(15 85% 55%); color: white; font-size: 0.75rem; font-weight: 700; padding: 4px 10px; border-radius: 999px; }
+      .draft-note { background: hsl(50 90% 85%); padding: 12px; }
+      .help-button { width: 48px; height: 48px; border-radius: 50%; background: hsl(150 60% 40%); color: white; font-size: 1.5rem; font-weight: 700; text-align: center; line-height: 48px; text-decoration: none; }
+    </style>
+    <!-- Your styles load last, so they win any tie with the given styles above -->
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header class="site-header">
+      <h1>Course catalog</h1>
+    </header>
+
+    <main>
+      <ul class="tags">
+        <li>HTML</li>
+        <li>CSS</li>
+        <li>Beginner</li>
+        <li>Free</li>
+      </ul>
+
+      <p class="draft-note">Draft: remember to update the prices before launch!</p>
+
+      <article class="card">
+        <span class="badge">NEW</span>
+        <h2>CSS Basics</h2>
+        <p>Selectors, colors and the box model, explained with everyday examples.</p>
+      </article>
+
+      <article class="card">
+        <span class="badge">NEW</span>
+        <h2>Layouts</h2>
+        <p>Display, position, Flexbox and Grid: arrange anything on the page.</p>
+      </article>
+
+      <article class="card">
+        <span class="badge">NEW</span>
+        <h2>Responsive design</h2>
+        <p>Make every page look great on phones, tablets and laptops.</p>
+      </article>
+
+      <article class="card">
+        <h2>Animations</h2>
+        <p>Bring your pages to life with transitions and keyframes.</p>
+      </article>
+
+      <article class="card">
+        <span class="badge">NEW</span>
+        <h2>Tailwind CSS</h2>
+        <p>Style faster with small, ready-made utility classes.</p>
+      </article>
+
+      <article class="card">
+        <h2>Checkpoint</h2>
+        <p>Put every CSS skill together to style a real app.</p>
+      </article>
+    </main>
+
+    <a class="help-button" href="#" aria-label="Help">?</a>
+  </body>
+</html>

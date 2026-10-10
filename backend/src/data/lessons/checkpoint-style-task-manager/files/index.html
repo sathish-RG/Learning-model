@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Task Manager Pro</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="brand">
+        <img
+          class="logo"
+          src="https://interactive-examples.mdn.mozilla.net/media/cc0-images/grapefruit-slice-332-332.jpg"
+          alt="Task Manager Pro logo: a grapefruit slice"
+          width="48"
+          height="48"
+        />
+        <h1>Task Manager Pro</h1>
+      </div>
+      <nav class="main-nav" aria-label="Main">
+        <ul>
+          <li><a href="#tasks">Tasks</a></li>
+          <li><a href="#new-task">Add a task</a></li>
+          <li><a href="#stats">Stats</a></li>
+        </ul>
+      </nav>
+    </header>
+
+    <main class="content">
+      <section id="tasks" class="card">
+        <h2>Today's tasks</h2>
+        <ul class="task-list">
+          <li class="task">
+            <input type="checkbox" id="task-1" name="done" />
+            <label for="task-1"><strong>Finish the HTML checkpoint</strong></label>
+            <span class="due">due <time datetime="2026-10-20">20 Oct</time></span>
+          </li>
+          <li class="task">
+            <input type="checkbox" id="task-2" name="done" />
+            <label for="task-2">Review tables</label>
+            <span class="due">due <time datetime="2026-10-21">21 Oct</time></span>
+          </li>
+          <li class="task">
+            <input type="checkbox" id="task-3" name="done" />
+            <label for="task-3">Start Phase 2</label>
+            <span class="due">due <time datetime="2026-10-22">22 Oct</time></span>
+          </li>
+          <li class="task">
+            <input type="checkbox" id="task-4" name="done" />
+            <label for="task-4">Style Task Manager Pro</label>
+            <span class="due">due <time datetime="2026-10-25">25 Oct</time></span>
+          </li>
+        </ul>
+      </section>
+
+      <section id="new-task" class="card">
+        <h2>Add a task</h2>
+        <form class="task-form" action="#">
+          <p>
+            <label for="title">Title</label>
+            <input type="text" id="title" name="title" required minlength="3" />
+          </p>
+          <p>
+            <label for="notes">Notes</label>
+            <textarea id="notes" name="notes" rows="3"></textarea>
+          </p>
+          <p>
+            <label for="due">Due date</label>
+            <input type="date" id="due" name="due" min="2026-10-01" />
+          </p>
+          <p>
+            <label for="priority">Priority</label>
+            <select id="priority" name="priority" required>
+              <option value="">Choose…</option>
+              <option value="low">Low</option>
+              <option value="medium">Medium</option>
+              <option value="high">High</option>
+            </select>
+          </p>
+          <fieldset>
+            <legend>Category</legend>
+            <input type="radio" id="cat-work" name="category" value="work" />
+            <label for="cat-work">Work</label>
+            <input type="radio" id="cat-study" name="category" value="study" />
+            <label for="cat-study">Study</label>
+            <input type="radio" id="cat-personal" name="category" value="personal" />
+            <label for="cat-personal">Personal</label>
+          </fieldset>
+          <p>
+            <input type="checkbox" id="remind" name="remind" />
+            <label for="remind">Remind me</label>
+          </p>
+          <button class="button" type="submit">Add task</button>
+        </form>
+      </section>
+
+      <section id="stats" class="card">
+        <h2>This week</h2>
+        <table class="stats-table">
+          <caption>Tasks completed this week</caption>
+          <thead>
+            <tr><th scope="col">Day</th><th scope="col">Done</th><th scope="col">Left</th></tr>
+          </thead>
+          <tbody>
+            <tr><th scope="row">Monday</th><td>3</td><td>1</td></tr>
+            <tr><th scope="row">Tuesday</th><td colspan="2">Rest day</td></tr>
+            <tr><th scope="row">Wednesday</th><td>4</td><td>0</td></tr>
+          </tbody>
+          <tfoot>
+            <tr><th scope="row">Total</th><td>7</td><td>1</td></tr>
+          </tfoot>
+        </table>
+      </section>
+    </main>
+
+    <aside class="sidebar card">
+      <h2>Tip of the day</h2>
+      <blockquote><p>Small steps every day add up to big results.</p></blockquote>
+      <figure>
+        <img
+          src="https://interactive-examples.mdn.mozilla.net/media/cc0-images/surfer-240-200.jpg"
+          alt="A surfer riding a wave"
+          width="240"
+          height="200"
+        />
+        <figcaption>Ride the wave of progress.</figcaption>
+      </figure>
+    </aside>
+
+    <footer class="site-footer">
+      <address>Contact: <a href="mailto:support@taskmanager.pro">support@taskmanager.pro</a></address>
+      <p>&copy; 2026 Task Manager Pro</p>
+    </footer>
+  </body>
+</html>

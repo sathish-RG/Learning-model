@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Grid City</title>
+    <style>
+      /* Given: colors and spacing (you'll write the Grid layout in styles.css) */
+      * { box-sizing: border-box; }
+      body { margin: 0; font-family: system-ui, sans-serif; color: hsl(220 15% 20%); background: hsl(220 30% 97%); }
+      .layout { min-height: 100vh; padding: 16px; }
+      .top, .side, .content, .extra, .bottom { background: white; border-radius: 12px; padding: 16px; border: 2px solid hsl(220 20% 90%); }
+      .top { background: hsl(220 40% 25%); color: white; }
+      .top h1 { margin: 0; font-size: 1.25rem; }
+      .side ul { padding-left: 16px; margin: 0; }
+      .content h2, .extra h2 { margin-top: 0; font-size: 1.1rem; }
+      .card { background: hsl(220 30% 96%); border-radius: 10px; padding: 12px; min-height: 80px; font-weight: 600; }
+      .card.featured { background: hsl(40 90% 85%); }
+    </style>
+    <!-- Your styles load last, so they win any tie with the given styles above -->
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="layout">
+      <header class="top"><h1>Grid City</h1></header>
+
+      <nav class="side" aria-label="Main">
+        <ul>
+          <li>Home</li>
+          <li>Parks</li>
+          <li>Museums</li>
+        </ul>
+      </nav>
+
+      <main class="content">
+        <h2>Places to visit</h2>
+        <div class="cards">
+          <div class="card featured">Central Park (featured)</div>
+          <div class="card">Art Museum</div>
+          <div class="card">Old Library</div>
+          <div class="card">River Walk</div>
+          <div class="card">Night Market</div>
+          <div class="card">Zoo</div>
+        </div>
+      </main>
+
+      <aside class="extra">
+        <h2>Weather</h2>
+        <p>Sunny, 26°C</p>
+      </aside>
+
+      <footer class="bottom">© 2026 Grid City Tourism</footer>
+    </div>
+  </body>
+</html>

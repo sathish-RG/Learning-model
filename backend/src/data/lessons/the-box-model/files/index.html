@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Framed cards</title>
+    <style>
+      /* Given: colors and the ruler (you'll write the box model in styles.css) */
+      body { font-family: system-ui, sans-serif; background: hsl(40 30% 96%); color: hsl(220 15% 20%); }
+      .ruler { width: 300px; height: 24px; margin-bottom: 24px; background: repeating-linear-gradient(90deg, hsl(220 40% 40%) 0 2px, transparent 2px 30px), hsl(40 80% 85%); font-size: 12px; font-weight: 700; text-align: center; line-height: 24px; }
+      .card { background: white; }
+    </style>
+    <!-- Your styles load last, so they win any tie with the given styles above -->
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main class="page">
+      <h1>Framed cards</h1>
+      <div class="ruler">300px</div>
+
+      <article class="card" id="card-1">
+        <h2>Card 1</h2>
+        <p>The content is the painting; the padding is the mat around it.</p>
+      </article>
+
+      <article class="card" id="card-2">
+        <h2>Card 2</h2>
+        <p>This card gets a wider mat on its left and right.</p>
+      </article>
+
+      <article class="card" id="card-3">
+        <h2>Card 3</h2>
+        <p>This card gets a thick frame on its left edge.</p>
+      </article>
+    </main>
+  </body>
+</html>

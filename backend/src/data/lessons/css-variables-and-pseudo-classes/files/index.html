@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Settings</title>
+    <style>
+      /* Given: spacing (you'll write the variables and states in styles.css) */
+      * { box-sizing: border-box; }
+      body { margin: 0; font-family: system-ui, sans-serif; }
+      main { max-width: 480px; margin: 0 auto; padding: 24px; }
+      .settings { list-style: none; padding: 0; }
+      .settings li { padding: 10px 12px; }
+      label { display: block; margin: 16px 0 6px; font-weight: 600; }
+      input[type="email"] { width: 100%; padding: 10px; border: 3px solid hsl(220 15% 70%); border-radius: 8px; font: inherit; }
+      .button { color: white; border: 0; padding: 12px 20px; font: inherit; font-weight: 700; margin-top: 16px; cursor: pointer; }
+    </style>
+    <!-- Your styles load last, so they win any tie with the given styles above -->
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main>
+      <h1>Settings</h1>
+
+      <p><input type="checkbox" id="dark-mode" /> <label for="dark-mode" style="display: inline">Dark mode</label></p>
+
+      <ul class="settings">
+        <li>Email notifications: on</li>
+        <li>Weekly summary: on</li>
+        <li>Sound effects: off</li>
+        <li>Daily reminder: 8:00 am</li>
+      </ul>
+
+      <label for="email">Email address</label>
+      <input type="email" id="email" name="email" required placeholder="you@example.com" />
+
+      <p class="tip">Tip: press Tab to move between controls without a mouse.</p>
+
+      <button class="button" type="button">Save settings</button>
+    </main>
+  </body>
+</html>

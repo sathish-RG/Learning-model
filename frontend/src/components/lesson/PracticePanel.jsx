@@ -53,15 +53,18 @@ export default function PracticePanel({ topic, onCompleted }) {
       theme={theme}
       style={providerStyle}
     >
-      <div className="flex h-full min-h-0 flex-col gap-3 overflow-y-auto p-3 sm:p-4 lg:overflow-hidden">
+      <div className="flex h-full min-h-0 flex-col gap-4 overflow-y-auto p-3 sm:p-4">
         <MissionCard markdown={topic.instructions} xpReward={topic.xpReward} xpEarned={xpEarned} />
-        <EditorToolbar topic={topic} mainFile={main} initialCode={initialCode} onCompleted={onCompleted} />
+        {/* Pinned while scrolling, so Save and Mark as completed are always reachable */}
+        <div className="sticky -top-3 z-10 -mx-3 border-b border-line/60 bg-canvas/95 px-3 py-2 backdrop-blur sm:-top-4 sm:-mx-4 sm:px-4">
+          <EditorToolbar topic={topic} mainFile={main} initialCode={initialCode} onCompleted={onCompleted} />
+        </div>
 
-        {/* Desktop: code on the left, live result on the right. Phones: stacked. */}
-        <div className="h-[85dvh] shrink-0 overflow-hidden rounded-2xl border-2 border-line lg:h-auto lg:min-h-0 lg:flex-1">
+        {/* Desktop: code on the left, live result on the right (both full height). Phones: stacked. */}
+        <div className="h-[85dvh] min-h-[480px] shrink-0 overflow-hidden rounded-2xl border-2 border-line">
           <SandpackLayout className="!h-full !flex-col !flex-nowrap !rounded-none !border-0 lg:!flex-row">
-            <SandpackCodeEditor showTabs showLineNumbers wrapContent className="!min-h-0 !flex-[3_1_0%] lg:!flex-1" />
-            <SandpackPreview showOpenInCodeSandbox={false} className="!min-h-0 !flex-[2_1_0%] lg:!flex-1" />
+            <SandpackCodeEditor showTabs showLineNumbers wrapContent className="!min-h-0 !flex-[3_1_0%] lg:!h-full lg:!flex-1" />
+            <SandpackPreview showOpenInCodeSandbox={false} className="!min-h-0 !flex-[2_1_0%] lg:!h-full lg:!flex-1" />
           </SandpackLayout>
         </div>
       </div>

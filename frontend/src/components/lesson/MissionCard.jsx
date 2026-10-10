@@ -33,7 +33,7 @@ export default function MissionCard({ markdown, xpReward, xpEarned }) {
         <ChevronDown className={`size-5 shrink-0 text-muted transition-transform ${open ? 'rotate-180' : ''}`} />
       </button>
       {open && (
-        <div className="max-h-[38dvh] overflow-y-auto px-5 py-4">
+        <div className="px-5 py-4">
           <Prose size="sm">{body}</Prose>
         </div>
       )}

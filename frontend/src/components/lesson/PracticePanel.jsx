@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import { SandpackCodeEditor, SandpackLayout, SandpackPreview, SandpackProvider } from '@codesandbox/sandpack-react';
 import MissionCard from './MissionCard';
+import LessonConsole from './LessonConsole';
 import EditorToolbar from '../editor/EditorToolbar';
 import PageLoader from '../ui/PageLoader';
 import ErrorState from '../ui/ErrorState';
@@ -15,6 +16,35 @@ const TEMPLATE_DEPENDENCIES = {
 };
 
 const providerStyle = { height: '100%', fontFamily: 'inherit' };
+
+// Sizing shared by whatever sits beside the editor
+const OUTPUT_CLASSES = '!min-h-0 !flex-[2_1_0%] lg:!h-full lg:!flex-1';
+
+// The panel next to the editor, chosen per lesson (topic.output)
+function OutputPanel({ type }) {
+  // Pure JavaScript lessons: no page to show, so the console runs the code on its own
+  if (type === 'console') {
+    return (
+      <div className={`flex flex-col ${OUTPUT_CLASSES}`} aria-label="Console output">
+        <LessonConsole standalone />
+      </div>
+    );
+  }
+
+  // Page lessons that also log: the page on top, its console below
+  if (type === 'both') {
+    return (
+      <div className={`flex flex-col ${OUTPUT_CLASSES}`}>
+        <SandpackPreview showOpenInCodeSandbox={false} className="!min-h-0 !flex-[3_1_0%]" />
+        <div className="flex min-h-0 flex-[2_1_0%] flex-col border-t-2 border-line" aria-label="Console output">
+          <LessonConsole />
+        </div>
+      </div>
+    );
+  }
+
+  return <SandpackPreview showOpenInCodeSandbox={false} className={OUTPUT_CLASSES} />;
+}
 
 // Step 2: the mission instructions plus the Sandpack editor and live preview.
 // `topic` is the full topic (with files). Lazy-loaded by TopicView, since Sandpack is large.
@@ -53,9 +83,8 @@ export default function PracticePanel({ topic, onCompleted }) {
       visibleFiles: topic.files.filter((f) => !f.hidden).map((f) => f.filename),
       // Open on the first file the learner can edit
       activeFile: editable[0],
-      // Start the editor and preview right away, even while the learner is still reading
-      // the mission above them (the default waits until they scroll into view)
-      initMode: 'immediate',
+      // Keep Sandpack's default initMode ('lazy'). 'immediate' races the preview's own
+      // registration and leaves a stale client, so JavaScript lessons stop re-running on edits.
     }),
     [topic.files, editable],
   );
@@ -83,11 +112,11 @@ export default function PracticePanel({ topic, onCompleted }) {
           <EditorToolbar topic={topic} editable={editable} initialContents={initialContents} onCompleted={onCompleted} />
         </div>
 
-        {/* Desktop: code on the left, live result on the right (both full height). Phones: stacked. */}
+        {/* Desktop: code on the left, output on the right (both full height). Phones: stacked. */}
         <div className="h-[85dvh] min-h-[480px] shrink-0 overflow-hidden rounded-2xl border-2 border-line">
           <SandpackLayout className="!h-full !flex-col !flex-nowrap !rounded-none !border-0 lg:!flex-row">
             <SandpackCodeEditor showTabs showLineNumbers wrapContent className="!min-h-0 !flex-[3_1_0%] lg:!h-full lg:!flex-1" />
-            <SandpackPreview showOpenInCodeSandbox={false} className="!min-h-0 !flex-[2_1_0%] lg:!h-full lg:!flex-1" />
+            <OutputPanel type={topic.output} />
           </SandpackLayout>
         </div>
       </div>

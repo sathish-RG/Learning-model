@@ -2,6 +2,8 @@ import mongoose from 'mongoose';
 
 export const TEMPLATE_TYPES = ['static', 'vanilla', 'react', 'node'];
 export const LESSON_TYPES = ['lesson', 'checkpoint'];
+// What appears next to the editor: the page, a console for console.log output, or both
+export const OUTPUT_PANELS = ['preview', 'console', 'both'];
 export const PHASE_COUNT = 8;
 
 // One file in the practice editor. Paths are Sandpack-style, e.g. "/index.html".
@@ -45,6 +47,7 @@ const topicSchema = new mongoose.Schema(
     milestone: { type: String, default: '' },
     subtopics: { type: [String], default: [] },
     templateType: { type: String, required: true, enum: TEMPLATE_TYPES },
+    output: { type: String, enum: OUTPUT_PANELS, default: 'preview' },
     files: { type: [fileSchema], default: [] },
     // Markdown, rendered as plain text + formatting on the client (no raw HTML)
     lessonContent: { type: String, default: '' },

@@ -9,6 +9,9 @@ const progressSchema = new mongoose.Schema(
     status: { type: String, enum: PROGRESS_STATUSES, default: 'pending' },
     userSavedCode: { type: String, default: '' },
     completedAt: { type: Date, default: null },
+    // XP is granted once per topic, on its first completion; xpAwardedAt marks the claim
+    xpAwardedAt: { type: Date, default: null },
+    xpEarned: { type: Number, default: 0, min: 0 },
   },
   {
     timestamps: true,

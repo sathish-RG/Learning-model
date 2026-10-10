@@ -1,38 +1,44 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useBlocker } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { useSandpack } from '@codesandbox/sandpack-react';
 import { Check, CheckCircle2, RotateCcw, Save } from 'lucide-react';
 import Button from '../ui/Button';
-import { saveCode, selectIsTopicCompleted, selectStreak, setTopicStatus } from '../../redux/slices/progressSlice';
+import { saveFiles, selectIsTopicCompleted, selectStreak, setTopicStatus } from '../../redux/slices/progressSlice';
 
 const SAVED_MESSAGE_MS = 3000;
 const isMac = typeof navigator !== 'undefined' && /Mac|iPhone|iPad/.test(navigator.platform);
 const SAVE_SHORTCUT = isMac ? '⌘S' : 'Ctrl+S';
 
+const sameContents = (a, b, names) => names.every((name) => a[name] === b[name]);
+
 // Save / reset / complete actions for the practice editor. Must render inside <SandpackProvider>.
+// `editable` lists the files the learner may change; only those are compared, saved and reset.
 // onCompleted({ xpEarned, totalXP, streak }) runs after the topic is marked as completed.
-export default function EditorToolbar({ topic, mainFile, initialCode, onCompleted }) {
+export default function EditorToolbar({ topic, editable, initialContents, onCompleted }) {
   const dispatch = useDispatch();
   const { sandpack } = useSandpack();
   const completed = useSelector((state) => selectIsTopicCompleted(state, topic._id));
   const streak = useSelector(selectStreak);
 
-  const code = sandpack.files[mainFile]?.code ?? '';
-  const [savedCode, setSavedCode] = useState(initialCode);
+  const current = Object.fromEntries(editable.map((name) => [name, sandpack.files[name]?.code ?? '']));
+  const starter = Object.fromEntries(topic.files.map((f) => [f.filename, f.content]));
+  const [savedContents, setSavedContents] = useState(initialContents);
   const [feedback, setFeedback] = useState({ status: 'idle', message: null }); // idle | saving | saved | error
   const [statusPending, setStatusPending] = useState(false);
 
-  const dirty = code !== savedCode;
+  const dirty = !sameContents(current, savedContents, editable);
+  const atStarter = sameContents(current, starter, editable);
   const saving = feedback.status === 'saving';
 
-  const save = useCallback(async () => {
-    const snapshot = code; // the user may keep typing while the request is in flight
+  const save = async () => {
+    const snapshot = current; // the user may keep typing while the request is in flight
     const streakBefore = streak.currentStreak;
     setFeedback({ status: 'saving', message: null });
     try {
-      const { streak: next } = await dispatch(saveCode({ slug: topic.slug, code: snapshot })).unwrap();
-      setSavedCode(snapshot);
+      const files = editable.map((filename) => ({ filename, content: snapshot[filename] }));
+      const { streak: next } = await dispatch(saveFiles({ slug: topic.slug, files })).unwrap();
+      setSavedContents(snapshot);
       const extended = next.currentStreak > streakBefore;
       setFeedback({ status: 'saved', message: extended ? `Saved · ${next.currentStreak}-day streak 🔥` : 'Saved' });
       return true;
@@ -40,7 +46,7 @@ export default function EditorToolbar({ topic, mainFile, initialCode, onComplete
       setFeedback({ status: 'error', message: `Couldn't save: ${message}` });
       return false;
     }
-  }, [code, streak.currentStreak, dispatch, topic.slug]);
+  };
 
   const toggleCompleted = async () => {
     setStatusPending(true);
@@ -62,10 +68,11 @@ export default function EditorToolbar({ topic, mainFile, initialCode, onComplete
   };
 
   // Ctrl/Cmd+S saves, even while the editor has focus
+  // The keyboard handler is registered once, so it reads the latest save() through a ref
   const saveRef = useRef(save);
   useEffect(() => {
     saveRef.current = save;
-  }, [save]);
+  });
   useEffect(() => {
     const onKeyDown = (e) => {
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') {
@@ -125,8 +132,8 @@ export default function EditorToolbar({ topic, mainFile, initialCode, onComplete
       <Button
         variant="ghost"
         size="sm"
-        onClick={() => sandpack.updateFile(mainFile, topic.starterCode)}
-        disabled={code === topic.starterCode}
+        onClick={() => sandpack.updateFile(Object.fromEntries(editable.map((name) => [name, starter[name]])))}
+        disabled={atStarter}
         aria-label="Reset to starter code"
         title="Reset to starter code (your saved code stays until you save)"
       >

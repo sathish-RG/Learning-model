@@ -1,17 +1,20 @@
 import { Suspense, lazy, useCallback, useState } from 'react';
 import { Link, useParams, useSearchParams } from 'react-router-dom';
 import { useSelector } from 'react-redux';
-import { ArrowLeft, ArrowRight, BookOpen, Check, Code2, Hammer, Star, X } from 'lucide-react';
+import { ArrowLeft, ArrowRight, BookOpen, Check, Code2, Flag, Hammer, Hourglass, Star, X } from 'lucide-react';
 import NotFound from './NotFound';
 import TopBar from '../components/layout/TopBar';
 import LessonContent from '../components/lesson/LessonContent';
 import SuccessModal from '../components/gamification/SuccessModal';
 import Button from '../components/ui/Button';
 import PageLoader from '../components/ui/PageLoader';
+import ErrorState from '../components/ui/ErrorState';
 import useDocumentTitle from '../hooks/useDocumentTitle';
+import useTopicDetail from '../hooks/useTopicDetail';
 import { PROJECT_NAME, ROUTES } from '../utils/constants';
-import { selectTopics } from '../redux/slices/topicsSlice';
+import { selectTopicBySlug } from '../redux/slices/topicsSlice';
 import { selectIsTopicCompleted } from '../redux/slices/progressSlice';
+import { selectPublishedNeighbours } from '../redux/selectors/course';
 
 // Sandpack is heavy, so the practice step loads only when it's first opened
 const PracticePanel = lazy(() => import('../components/lesson/PracticePanel'));
@@ -20,6 +23,21 @@ const STEPS = [
   { id: 'learn', label: 'Learn', icon: BookOpen },
   { id: 'practice', label: 'Practice', icon: Code2 },
 ];
+
+const isCheckpoint = (topic) => topic.lessonType === 'checkpoint';
+const topicLabel = (topic) => (isCheckpoint(topic) ? 'Checkpoint' : `Lesson ${topic.moduleOrder}`);
+
+function CloseLink() {
+  return (
+    <Link
+      to={ROUTES.dashboard}
+      aria-label="Close lesson"
+      className="-ml-1 rounded-xl p-2 text-muted transition-transform hover:bg-surface-muted hover:text-fg active:scale-90"
+    >
+      <X className="size-6" strokeWidth={2.5} />
+    </Link>
+  );
+}
 
 function StepTabs({ step, onChange, completed }) {
   return (
@@ -53,14 +71,25 @@ function StepTabs({ step, onChange, completed }) {
   );
 }
 
-function LearnStep({ topic, prev, next, onContinue }) {
+function TopicHeader({ topic }) {
+  return (
+    <header>
+      <p className={`flex items-center gap-1.5 text-sm font-extrabold tracking-wider uppercase ${isCheckpoint(topic) ? 'text-xp' : 'text-accent'}`}>
+        {isCheckpoint(topic) && <Flag className="size-4" />}
+        {topic.phaseTitle} · {topicLabel(topic)}
+      </p>
+      <h1 className="mt-1 text-3xl font-extrabold tracking-tight sm:text-4xl">{topic.title}</h1>
+      <p className="mt-2 text-lg text-muted">{topic.description}</p>
+    </header>
+  );
+}
+
+function LearnStep({ topic, detail, prev, next, onContinue }) {
   return (
     <div className="h-full overflow-y-auto">
       <div className="mx-auto max-w-3xl px-4 py-8 sm:px-6 sm:py-10">
-        <header>
-          <p className="text-sm font-extrabold tracking-wider text-accent uppercase">Module {topic.moduleOrder}</p>
-          <h1 className="mt-1 text-3xl font-extrabold tracking-tight sm:text-4xl">{topic.title}</h1>
-          <p className="mt-2 text-lg text-muted">{topic.description}</p>
+        <TopicHeader topic={topic} />
+        {topic.subtopics.length > 0 && (
           <ul className="mt-4 flex flex-wrap gap-2" aria-label="In this lesson">
             {topic.subtopics.map((subtopic) => (
               <li key={subtopic} className="rounded-full border-2 border-line px-3 py-1 text-xs font-bold text-muted">
@@ -68,18 +97,20 @@ function LearnStep({ topic, prev, next, onContinue }) {
               </li>
             ))}
           </ul>
-        </header>
+        )}
 
-        <section className="mt-6 flex gap-3 rounded-2xl border-2 border-xp/40 bg-xp-soft p-4 sm:p-5">
-          <Hammer className="mt-0.5 size-5 shrink-0 text-xp" />
-          <div>
-            <h2 className="text-sm font-extrabold text-xp">What you&apos;ll build for {PROJECT_NAME}</h2>
-            <p className="mt-1">{topic.milestone}</p>
-          </div>
-        </section>
+        {isCheckpoint(topic) && topic.milestone && (
+          <section className="mt-6 flex gap-3 rounded-2xl border-2 border-xp/40 bg-xp-soft p-4 sm:p-5">
+            <Hammer className="mt-0.5 size-5 shrink-0 text-xp" />
+            <div>
+              <h2 className="text-sm font-extrabold text-xp">What you&apos;ll build for {PROJECT_NAME}</h2>
+              <p className="mt-1">{topic.milestone}</p>
+            </div>
+          </section>
+        )}
 
         <div className="mt-6">
-          <LessonContent markdown={topic.lessonContent} />
+          <LessonContent markdown={detail.lessonContent} />
         </div>
 
         <div className="mt-10 rounded-3xl border-2 border-line bg-surface p-6 text-center shadow-sm">
@@ -97,7 +128,7 @@ function LearnStep({ topic, prev, next, onContinue }) {
           </Button>
         </div>
 
-        <nav className="mt-8 flex justify-between gap-4 text-sm font-bold" aria-label="Module navigation">
+        <nav className="mt-8 flex justify-between gap-4 text-sm font-bold" aria-label="Lesson navigation">
           {prev ? (
             <Link to={ROUTES.topic(prev.slug)} className="flex items-center gap-2 text-muted hover:text-fg">
               <ArrowLeft className="size-4" />
@@ -118,10 +149,37 @@ function LearnStep({ topic, prev, next, onContinue }) {
   );
 }
 
-function TopicLesson({ topic, prev, next }) {
+// Lessons on the path whose content isn't written yet
+function ComingSoon({ topic }) {
+  useDocumentTitle(topic.title);
+  return (
+    <div className="flex h-dvh flex-col">
+      <TopBar leading={<CloseLink />} progress={{ label: `${topic.phaseTitle} · ${topicLabel(topic)}`, value: 0 }} />
+      <div className="flex-1 overflow-y-auto">
+        <div className="mx-auto max-w-2xl px-4 py-12 sm:px-6">
+          <TopicHeader topic={topic} />
+          <div className="mt-8 flex gap-4 rounded-3xl border-2 border-dashed border-line p-6">
+            <Hourglass className="size-8 shrink-0 text-muted" />
+            <div>
+              <p className="text-lg font-extrabold">Coming soon</p>
+              <p className="mt-1 text-muted">This lesson is being written. It will unlock on your path as soon as it&apos;s ready.</p>
+              <Button to={ROUTES.dashboard} variant="secondary" className="mt-5">
+                Back to your path
+              </Button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function TopicLesson({ topic }) {
   const [searchParams, setSearchParams] = useSearchParams();
   const step = searchParams.get('step') === 'practice' ? 'practice' : 'learn';
   const completed = useSelector((state) => selectIsTopicCompleted(state, topic._id));
+  const { prev, next } = useSelector((state) => selectPublishedNeighbours(state, topic.slug));
+  const detail = useTopicDetail(topic.slug);
   const [celebration, setCelebration] = useState(null);
   useDocumentTitle(step === 'practice' ? `Practice: ${topic.title}` : topic.title);
 
@@ -136,37 +194,40 @@ function TopicLesson({ topic, prev, next }) {
   }, []);
   const closeCelebration = useCallback(() => setCelebration(null), []);
 
-  // Module progress: reading the lesson, practicing, done
+  // Lesson progress: reading, practicing, done
   const progressValue = completed ? 100 : step === 'practice' ? 66 : 33;
 
-  return (
-    <div className="flex h-dvh flex-col">
-      <TopBar
-        leading={
-          <Link
-            to={ROUTES.dashboard}
-            aria-label="Close lesson"
-            className="-ml-1 rounded-xl p-2 text-muted transition-transform hover:bg-surface-muted hover:text-fg active:scale-90"
-          >
-            <X className="size-6" strokeWidth={2.5} />
-          </Link>
-        }
-        progress={{ label: `Module ${topic.moduleOrder} · ${topic.title}`, value: progressValue }}
-      />
-      <StepTabs step={step} onChange={goTo} completed={completed} />
-
-      <div className="min-h-0 flex-1">
-        {step === 'learn' && <LearnStep topic={topic} prev={prev} next={next} onContinue={() => goTo('practice')} />}
-
+  let body;
+  if (detail.status === 'failed') {
+    body = <ErrorState title="Couldn't load this lesson" message={detail.error} onRetry={detail.retry} />;
+  } else if (!detail.topic) {
+    body = <PageLoader />;
+  } else {
+    body = (
+      <>
+        {step === 'learn' && (
+          <LearnStep topic={topic} detail={detail.topic} prev={prev} next={next} onContinue={() => goTo('practice')} />
+        )}
         {/* Practice shows only the mission and the editor; the lesson stays on the Learn tab */}
         {practiceOpened && (
           <div className={step === 'practice' ? 'mx-auto h-full max-w-[1600px]' : 'hidden'}>
             <Suspense fallback={<PageLoader />}>
-              <PracticePanel topic={topic} onCompleted={handleCompleted} />
+              <PracticePanel topic={detail.topic} onCompleted={handleCompleted} />
             </Suspense>
           </div>
         )}
-      </div>
+      </>
+    );
+  }
+
+  return (
+    <div className="flex h-dvh flex-col">
+      <TopBar
+        leading={<CloseLink />}
+        progress={{ label: `${topicLabel(topic)} · ${topic.title}`, value: progressValue }}
+      />
+      <StepTabs step={step} onChange={goTo} completed={completed} />
+      <div className="min-h-0 flex-1">{body}</div>
 
       {celebration && (
         <SuccessModal
@@ -184,9 +245,7 @@ function TopicLesson({ topic, prev, next }) {
 
 export default function TopicView() {
   const { topicId } = useParams();
-  const topics = useSelector(selectTopics);
-  const index = topics.findIndex((t) => t.slug === topicId);
-  const topic = topics[index];
+  const topic = useSelector((state) => selectTopicBySlug(state, topicId));
 
   if (!topic) {
     return (
@@ -196,6 +255,8 @@ export default function TopicView() {
     );
   }
 
-  // Keyed by slug so moving to another module starts fresh (step, editor, celebration)
-  return <TopicLesson key={topic.slug} topic={topic} prev={topics[index - 1]} next={topics[index + 1]} />;
+  if (!topic.published) return <ComingSoon key={topic.slug} topic={topic} />;
+
+  // Keyed by slug so moving to another lesson starts fresh (step, editor, celebration)
+  return <TopicLesson key={topic.slug} topic={topic} />;
 }

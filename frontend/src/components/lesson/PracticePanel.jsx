@@ -1,17 +1,11 @@
 import { useMemo } from 'react';
 import { useSelector } from 'react-redux';
-import {
-  SANDBOX_TEMPLATES,
-  SandpackCodeEditor,
-  SandpackLayout,
-  SandpackPreview,
-  SandpackProvider,
-} from '@codesandbox/sandpack-react';
+import { SandpackCodeEditor, SandpackLayout, SandpackPreview, SandpackProvider } from '@codesandbox/sandpack-react';
 import MissionCard from './MissionCard';
 import EditorToolbar from '../editor/EditorToolbar';
 import PageLoader from '../ui/PageLoader';
 import ErrorState from '../ui/ErrorState';
-import useSavedCode from '../../hooks/useSavedCode';
+import useSavedFiles from '../../hooks/useSavedFiles';
 import { selectTheme } from '../../redux/slices/uiSlice';
 import { selectTopicXpEarned } from '../../redux/slices/progressSlice';
 
@@ -23,21 +17,46 @@ const TEMPLATE_DEPENDENCIES = {
 const providerStyle = { height: '100%', fontFamily: 'inherit' };
 
 // Step 2: the mission instructions plus the Sandpack editor and live preview.
-// Lazy-loaded by TopicView, since Sandpack is a large bundle.
+// `topic` is the full topic (with files). Lazy-loaded by TopicView, since Sandpack is large.
 export default function PracticePanel({ topic, onCompleted }) {
   const theme = useSelector(selectTheme);
   const xpEarned = useSelector((state) => selectTopicXpEarned(state, topic._id));
-  const saved = useSavedCode(topic.slug);
+  const saved = useSavedFiles(topic.slug);
 
-  // starterCode / saved code replaces the template's main file (/index.html, /index.js or /App.js)
-  const { main } = SANDBOX_TEMPLATES[topic.templateType];
-  const initialCode = saved.code ?? topic.starterCode;
+  const editable = useMemo(() => topic.files.filter((f) => !f.readOnly && !f.hidden).map((f) => f.filename), [topic.files]);
+
+  // Starting point for each editable file: the learner's saved version, else the starter code
+  const initialContents = useMemo(
+    () =>
+      Object.fromEntries(
+        topic.files
+          .filter((f) => editable.includes(f.filename))
+          .map((f) => [f.filename, saved.files?.[f.filename] ?? f.content]),
+      ),
+    [topic.files, editable, saved.files],
+  );
 
   // Sandpack resets every file (discarding unsaved edits) whenever these props change by
   // reference, so they must stay the same objects across re-renders (theme, XP, step changes)
-  const files = useMemo(() => ({ [main]: initialCode }), [main, initialCode]);
+  const files = useMemo(
+    () =>
+      Object.fromEntries(
+        topic.files.map((f) => [
+          f.filename,
+          { code: initialContents[f.filename] ?? f.content, readOnly: f.readOnly, hidden: f.hidden },
+        ]),
+      ),
+    [topic.files, initialContents],
+  );
+  const options = useMemo(
+    () => ({
+      visibleFiles: topic.files.filter((f) => !f.hidden).map((f) => f.filename),
+      // Open on the first file the learner can edit
+      activeFile: editable[0],
+    }),
+    [topic.files, editable],
+  );
   const customSetup = useMemo(() => ({ dependencies: TEMPLATE_DEPENDENCIES[topic.templateType] }), [topic.templateType]);
-  const options = useMemo(() => ({ activeFile: main, visibleFiles: [main] }), [main]);
 
   if (saved.status === 'error') {
     return <ErrorState title="Couldn't load your saved code" message={saved.error} onRetry={saved.retry} />;
@@ -55,9 +74,10 @@ export default function PracticePanel({ topic, onCompleted }) {
     >
       <div className="flex h-full min-h-0 flex-col gap-4 overflow-y-auto p-3 sm:p-4">
         <MissionCard markdown={topic.instructions} xpReward={topic.xpReward} xpEarned={xpEarned} />
+
         {/* Pinned while scrolling, so Save and Mark as completed are always reachable */}
         <div className="sticky -top-3 z-10 -mx-3 border-b border-line/60 bg-canvas/95 px-3 py-2 backdrop-blur sm:-top-4 sm:-mx-4 sm:px-4">
-          <EditorToolbar topic={topic} mainFile={main} initialCode={initialCode} onCompleted={onCompleted} />
+          <EditorToolbar topic={topic} editable={editable} initialContents={initialContents} onCompleted={onCompleted} />
         </div>
 
         {/* Desktop: code on the left, live result on the right (both full height). Phones: stacked. */}

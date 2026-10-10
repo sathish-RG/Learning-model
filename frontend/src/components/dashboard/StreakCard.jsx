@@ -6,8 +6,8 @@ const WEEK = 7;
 const hintFor = ({ currentStreak, maxStreak, activeToday }) => {
   if (activeToday) return "You've practiced today. Come back tomorrow to keep it going.";
   if (currentStreak > 0) return 'Practice today to keep your streak alive.';
-  if (maxStreak > 0) return 'Your streak ended. Save code or complete a module to start a new one.';
-  return 'Save code or complete a module to start your streak.';
+  if (maxStreak > 0) return 'Your streak ended. Save code or complete a lesson to start a new one.';
+  return 'Save code or complete a lesson to start your streak.';
 };
 
 export default function StreakCard({ streak }) {

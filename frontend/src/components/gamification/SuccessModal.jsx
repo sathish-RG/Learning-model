@@ -16,7 +16,7 @@ function StatTile({ icon: Icon, value, label, className }) {
   );
 }
 
-// "Lesson complete" screen, shown when a module's XP is earned for the first time
+// "Lesson complete" screen, shown when a lesson's XP is earned for the first time
 export default function SuccessModal({ topic, xpEarned, totalXP, streak, nextTopic, onClose }) {
   const primaryRef = useRef(null);
 
@@ -40,12 +40,15 @@ export default function SuccessModal({ topic, xpEarned, totalXP, streak, nextTop
           <Trophy className="size-10 animate-bounce text-xp" />
         </div>
 
-        <p className="mt-5 text-sm font-extrabold tracking-wider text-accent uppercase">Module complete!</p>
+        <p className="mt-5 text-sm font-extrabold tracking-wider text-accent uppercase">
+          {topic.lessonType === 'checkpoint' ? 'Checkpoint complete!' : 'Lesson complete!'}
+        </p>
         <h2 id="success-title" className="mt-1 text-3xl font-extrabold tracking-tight">
           Awesome job! <span className="text-xp">+{xpEarned} XP</span>
         </h2>
         <p className="mt-2 text-muted">
-          You finished <span className="font-semibold text-fg">{topic.title}</span>. Task Manager Pro just got better.
+          You finished <span className="font-semibold text-fg">{topic.title}</span>.
+          {topic.lessonType === 'checkpoint' ? ' Task Manager Pro just got better.' : ' One step closer to pro.'}
         </p>
 
         <div className="mt-6 flex gap-3">

@@ -16,9 +16,10 @@ export const fetchProgress = createAsyncThunk(
 );
 
 // Both return { progress, streak }: the updated topic record and the updated streak
-export const saveCode = createAsyncThunk('progress/saveCode', async ({ slug, code }, { rejectWithValue }) => {
+// files: [{ filename, content }] (the lesson's editable files only)
+export const saveFiles = createAsyncThunk('progress/saveFiles', async ({ slug, files }, { rejectWithValue }) => {
   try {
-    const { data } = await api.put(`/progress/${slug}/code`, { code });
+    const { data } = await api.put(`/progress/${slug}/files`, { files });
     return data;
   } catch (err) {
     return rejectWithValue(err.message);
@@ -63,7 +64,7 @@ const progressSlice = createSlice({
         state.error = action.payload ?? action.error.message;
       })
       .addCase(loggedOut, () => initialState)
-      .addMatcher(isAnyOf(saveCode.fulfilled, setTopicStatus.fulfilled), (state, action) => {
+      .addMatcher(isAnyOf(saveFiles.fulfilled, setTopicStatus.fulfilled), (state, action) => {
         const { progress, streak } = action.payload;
         state.byTopicId[progress.topic] = progress;
         state.streak = streak;

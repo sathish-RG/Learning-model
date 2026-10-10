@@ -5,14 +5,11 @@ import Sidebar from './Sidebar';
 import TopBar from './TopBar';
 import Logo from '../ui/Logo';
 import { setSidebarOpen } from '../../redux/slices/uiSlice';
-import { selectTopics } from '../../redux/slices/topicsSlice';
-import { selectCompletedTopicIds } from '../../redux/slices/progressSlice';
+import { selectCoursePath } from '../../redux/selectors/course';
 
 export default function AppLayout() {
   const dispatch = useDispatch();
-  const topics = useSelector(selectTopics);
-  const completedIds = useSelector(selectCompletedTopicIds);
-  const completed = topics.filter((t) => completedIds.includes(t._id)).length;
+  const { completedCount, total } = useSelector(selectCoursePath);
 
   return (
     <div className="flex h-dvh overflow-hidden">
@@ -37,8 +34,8 @@ export default function AppLayout() {
             </div>
           }
           progress={{
-            label: `Course progress · ${completed} / ${topics.length} modules`,
-            value: topics.length ? (completed / topics.length) * 100 : 0,
+            label: `Course progress · ${completedCount} / ${total} lessons`,
+            value: total ? (completedCount / total) * 100 : 0,
           }}
         />
 

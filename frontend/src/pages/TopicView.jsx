@@ -158,18 +158,12 @@ function TopicLesson({ topic, prev, next }) {
       <div className="min-h-0 flex-1">
         {step === 'learn' && <LearnStep topic={topic} prev={prev} next={next} onContinue={() => goTo('practice')} />}
 
+        {/* Practice shows only the mission and the editor; the lesson stays on the Learn tab */}
         {practiceOpened && (
-          // `hidden` must replace (not join) lg:grid, or lg:grid would win on desktop
-          <div className={step === 'practice' ? 'h-full lg:grid lg:grid-cols-[minmax(320px,2fr)_3fr]' : 'hidden'}>
-            {/* Desktop: the lesson stays visible on the left for reference */}
-            <aside className="hidden overflow-y-auto border-r border-line bg-canvas p-4 lg:block" aria-label="Lesson">
-              <LessonContent markdown={topic.lessonContent} compact />
-            </aside>
-            <div className="h-full min-h-0">
-              <Suspense fallback={<PageLoader />}>
-                <PracticePanel topic={topic} onCompleted={handleCompleted} />
-              </Suspense>
-            </div>
+          <div className={step === 'practice' ? 'mx-auto h-full max-w-[1600px]' : 'hidden'}>
+            <Suspense fallback={<PageLoader />}>
+              <PracticePanel topic={topic} onCompleted={handleCompleted} />
+            </Suspense>
           </div>
         )}
       </div>

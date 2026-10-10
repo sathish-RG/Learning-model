@@ -57,11 +57,11 @@ export default function PracticePanel({ topic, onCompleted }) {
         <MissionCard markdown={topic.instructions} xpReward={topic.xpReward} xpEarned={xpEarned} />
         <EditorToolbar topic={topic} mainFile={main} initialCode={initialCode} onCompleted={onCompleted} />
 
-        {/* Editor on top, live preview below; fills the remaining height on desktop */}
+        {/* Desktop: code on the left, live result on the right. Phones: stacked. */}
         <div className="h-[85dvh] shrink-0 overflow-hidden rounded-2xl border-2 border-line lg:h-auto lg:min-h-0 lg:flex-1">
-          <SandpackLayout className="!h-full !flex-col !flex-nowrap !rounded-none !border-0">
-            <SandpackCodeEditor showTabs showLineNumbers wrapContent className="!min-h-0 !flex-[3_1_0%]" />
-            <SandpackPreview showOpenInCodeSandbox={false} className="!min-h-0 !flex-[2_1_0%]" />
+          <SandpackLayout className="!h-full !flex-col !flex-nowrap !rounded-none !border-0 lg:!flex-row">
+            <SandpackCodeEditor showTabs showLineNumbers wrapContent className="!min-h-0 !flex-[3_1_0%] lg:!flex-1" />
+            <SandpackPreview showOpenInCodeSandbox={false} className="!min-h-0 !flex-[2_1_0%] lg:!flex-1" />
           </SandpackLayout>
         </div>
       </div>

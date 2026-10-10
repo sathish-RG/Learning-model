@@ -75,7 +75,7 @@ const items = filterTasks(tasks, 'pending')
 app.innerHTML = \`
   <h1>Task Manager Pro</h1>
   <ul>\${items}</ul>
-  <p>Empty title check: \${validateTaskTitle('') ?? 'no error (yet!)'}</p>
+  <p>Empty title check: \${validateTaskTitle('') || 'no error (yet!)'}</p>
 \`;
 `,
   },
@@ -196,6 +196,11 @@ app.use(express.json());
 
 let tasks = [{ id: 1, title: 'Build a REST API', done: false }];
 
+// The preview opens "/", so say hello there
+app.get('/', (req, res) => {
+  res.send('Task API is running 🚀 Your routes live under /api/tasks');
+});
+
 app.get('/api/tasks', (req, res) => {
   res.json(tasks);
 });
@@ -229,6 +234,11 @@ const DEMO_TOKEN = 'demo-token';
 function requireAuth(req, res, next) {
   next();
 }
+
+// The preview opens "/", so say hello there
+app.get('/', (req, res) => {
+  res.send('Task API is running 🚀 Your routes live under /api/tasks');
+});
 
 app.get('/api/tasks', requireAuth, (req, res) => {
   res.json(tasks);

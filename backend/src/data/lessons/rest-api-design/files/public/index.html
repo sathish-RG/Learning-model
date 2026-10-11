@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Task Board</title>
+    <style>
+      body { margin: 0; font-family: system-ui, sans-serif; background: #f4f6fb; color: #1f2433; }
+      main { max-width: 640px; margin: 0 auto; padding: 1.25rem; }
+      h1 { margin: 0 0 0.25rem; }
+      .hint { margin: 0 0 1rem; color: #667; font-size: 0.9rem; }
+      .controls { display: flex; flex-wrap: wrap; gap: 0.75rem; margin-bottom: 0.75rem; }
+      label { font-size: 0.85rem; font-weight: 600; display: flex; flex-direction: column; gap: 0.2rem; }
+      select { font: inherit; padding: 0.3rem 0.5rem; border-radius: 0.5rem; border: 1px solid #c9cfe0; }
+      .request { font-family: ui-monospace, monospace; font-size: 0.85rem; background: #1f2433; color: #dfe6ff; border-radius: 0.5rem; padding: 0.5rem 0.75rem; overflow-wrap: anywhere; }
+      .ok { color: #8be28b; } .bad { color: #ff9a8a; }
+      ul { list-style: none; padding: 0; display: grid; gap: 0.5rem; }
+      li { background: #fff; border: 1px solid #dde2ef; border-radius: 0.75rem; padding: 0.7rem 1rem; display: flex; gap: 0.6rem; align-items: center; }
+      li.done span { text-decoration: line-through; color: #889; }
+      .id { font-family: ui-monospace, monospace; color: #889; font-size: 0.8rem; }
+      .empty { color: #667; font-style: italic; }
+      .pager { display: flex; align-items: center; justify-content: space-between; }
+      button { font: inherit; border: 1px solid #c9cfe0; background: #fff; border-radius: 0.5rem; padding: 0.35rem 0.8rem; cursor: pointer; }
+      button:disabled { opacity: 0.4; cursor: default; }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>✅ Task Board</h1>
+      <p class="hint">This page only <strong>reads</strong> your API with GET requests. Creating, changing and deleting are tested by requests.js.</p>
+      <div class="controls">
+        <label>Show
+          <select id="done"><option value="">All tasks</option><option value="false">To do</option><option value="true">Done</option></select>
+        </label>
+        <label>Sort
+          <select id="sort"><option value="">Oldest first</option><option value="title">Title A→Z</option><option value="-title">Title Z→A</option></select>
+        </label>
+        <label>Per page
+          <select id="limit"><option>3</option><option selected>5</option><option>10</option></select>
+        </label>
+      </div>
+      <p class="request" id="request">…</p>
+      <ul id="tasks"></ul>
+      <div class="pager">
+        <button id="prev" type="button">← Previous</button>
+        <span id="page-info"></span>
+        <button id="next" type="button">Next →</button>
+      </div>
+    </main>
+    <script>
+      const $ = (id) => document.getElementById(id);
+      let page = 1;
+      let lastPage = 1;
+
+      async function load() {
+        const params = new URLSearchParams({ page, limit: $("limit").value });
+        if ($("done").value) params.set("done", $("done").value);
+        if ($("sort").value) params.set("sort", $("sort").value);
+        const url = `/api/tasks?${params}`;
+        $("request").textContent = `GET ${url} …`;
+        try {
+          const res = await fetch(url);
+          const body = await res.json();
+          $("request").innerHTML = `GET ${url} → <span class="${res.ok ? "ok" : "bad"}">${res.status}</span>`;
+          if (!Array.isArray(body.data)) throw new Error("Expected { data, page, limit, total }");
+          lastPage = Math.max(1, Math.ceil(body.total / body.limit));
+          $("tasks").innerHTML = body.data.length
+            ? body.data.map((t) => `<li class="${t.done ? "done" : ""}">${t.done ? "☑" : "☐"} <span>${t.title}</span> <small class="id">#${t.id}</small></li>`).join("")
+            : '<li class="empty">No tasks here.</li>';
+          $("page-info").textContent = `Page ${body.page} of ${lastPage} · ${body.total} tasks`;
+        } catch (error) {
+          lastPage = 1;
+          $("tasks").innerHTML = `<li class="empty">No usable reply yet (${error.message}). Write GET /api/tasks in server.js.</li>`;
+          $("page-info").textContent = "";
+        }
+        $("prev").disabled = page <= 1;
+        $("next").disabled = page >= lastPage;
+      }
+
+      ["done", "sort", "limit"].forEach((id) => $(id).addEventListener("change", () => { page = 1; load(); }));
+      $("prev").addEventListener("click", () => { page -= 1; load(); });
+      $("next").addEventListener("click", () => { page += 1; load(); });
+      load();
+    </script>
+  </body>
+</html>

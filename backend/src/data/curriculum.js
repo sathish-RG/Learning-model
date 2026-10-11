@@ -45,6 +45,26 @@ const MODULE_PAGE = {
 };
 const CHECKPOINT_XP = 100;
 
+// Node lessons. Sandpack's Node sandbox always starts /index.js, so a hidden runner
+// (shared/runner.js) starts the lesson's own file, checks it for typos first and keeps the
+// sandbox alive so edits can restart it. Server lessons also get a locked test drive
+// (requests.js) that calls the learner's API through a hidden HTTP client (shared/api-client.js),
+// because the preview can only send requests without a body.
+const readShared = (name) => readFileSync(new URL(`./shared/${name}`, import.meta.url), 'utf8');
+const NODE_RUNNER = readShared('runner.js');
+const API_CLIENT = { filename: '/api-client.js', readOnly: true, hidden: true, content: readShared('api-client.js') };
+// `entry` is run as `node <entry> <args>`; `files` are extra file paths or full specs
+const nodeFiles = ({ entry = '/server.js', args = [], files = [], server = true } = {}) => {
+  const specs = [{ filename: entry }, ...files.map((file) => (typeof file === 'string' ? { filename: file } : file))];
+  const check = specs.filter((f) => !f.readOnly && f.filename.endsWith('.js')).map((f) => f.filename.slice(1));
+  const config = JSON.stringify({ entry: entry.slice(1), check, args, server });
+  return [
+    { filename: '/index.js', hidden: true, content: `const CONFIG = ${config};\n\n${NODE_RUNNER}` },
+    ...specs,
+    ...(server ? [locked('/requests.js'), API_CLIENT] : []),
+  ];
+};
+
 const PHASES = [
   {
     phase: 1,
@@ -271,16 +291,49 @@ const PHASES = [
     phase: 7,
     phaseTitle: 'Phase 7: Node.js & Express',
     templateType: 'node',
-    files: [{ filename: '/index.js' }],
+    // The server's own page (a mini-browser with an address bar) plus its logs
+    output: 'both',
+    files: nodeFiles(),
     lessons: [
-      ['node-fundamentals-and-modules', 'Node Fundamentals & Modules', 'Write a command-line script that reads arguments and uses its own module.'],
-      ['file-system-and-paths', 'File System & Paths', 'Read, update and save a JSON file with fs/promises.'],
-      ['events-and-streams', 'Events & Streams', 'Process a large text file line by line with a transform stream and pipe, never loading it all at once.'],
-      ['http-servers-from-scratch', 'HTTP Servers from Scratch', 'Build a two-route server with the built-in http module and correct status codes.'],
-      ['express-routing', 'Express Routing', 'Build CRUD routes that use URL parameters and query strings.'],
-      ['middleware-and-error-handling', 'Middleware & Error Handling', 'Add a request logger, validation, and one central error handler.'],
-      ['rest-api-design', 'REST API Design', 'Build a /tasks endpoint with pagination, filtering and sorting.'],
-      ['authentication-hashing-and-jwt', 'Authentication: Hashing & JWT', 'Build register and login with hashed passwords and a protected route.'],
+      // Scripts with no server: there is no page to show, only the console
+      ['node-fundamentals-and-modules', 'Node Fundamentals & Modules', 'Write a command-line tip calculator that reads its arguments and uses your own module.',
+        {
+          output: 'console',
+          files: nodeFiles({ entry: '/app.js', args: ['1200', '15'], files: ['/tip.js'], server: false }),
+          subtopics: ['What Node is', 'Browser vs Node globals', 'require & module.exports', 'Built-in, local & npm modules', 'process.argv & exit codes'],
+        }],
+      ['file-system-and-paths', 'File System & Paths', 'Load a JSON file of tasks, change it, and save a copy with fs/promises.',
+        {
+          output: 'console',
+          files: nodeFiles({ entry: '/app.js', files: [locked('/tasks.json')], server: false }),
+          subtopics: ['fs/promises', 'path.join & __dirname', 'Reading & parsing JSON', 'Writing files & folders', 'Handling ENOENT'],
+        }],
+      ['events-and-streams', 'Events & Streams', 'Find the errors in a 5,000-line log as it streams in, chunk by chunk, with a transform stream and pipeline.',
+        {
+          output: 'console',
+          files: nodeFiles({ entry: '/app.js', files: [locked('/log-source.js')], server: false }),
+          subtopics: ['EventEmitter', 'Why streams', 'Readable, Writable & Transform', 'Lines across chunks', 'pipeline'],
+        }],
+      ['http-servers-from-scratch', 'HTTP Servers from Scratch', "Build a restaurant's menu and orders API with only the built-in http module, with correct status codes and headers.",
+        { subtopics: ['Requests & responses', 'Methods & URLs', 'Status codes', 'Headers & Content-Type', 'Reading a request body'] }],
+      ['express-routing', 'Express Routing', 'Rebuild the menu API in Express, with URL parameters, query strings and routes in the right order.',
+        {
+          files: nodeFiles({ files: [locked('/menu.js'), locked('/public/index.html')] }),
+          subtopics: ['Why Express', 'app.get & res.json', 'URL parameters', 'Query strings', 'Route order'],
+        }],
+      ['middleware-and-error-handling', 'Middleware & Error Handling', 'Add a request logger, a validation check and one central error handler to an orders API.',
+        { subtopics: ['(req, res, next)', 'Global vs route middleware', 'Validation', '404 handler', 'Central error handler'] }],
+      ['rest-api-design', 'REST API Design', 'Build a complete /api/tasks API: all five CRUD routes, the right status codes, plus filtering, sorting and pagination.',
+        {
+          files: nodeFiles({ files: [locked('/public/index.html')] }),
+          subtopics: ['Resources & URLs', 'CRUD verbs', 'PUT vs PATCH', 'Status codes & Location', 'Filter, sort & paginate'],
+        }],
+      ['authentication-hashing-and-jwt', 'Authentication: Hashing & JWT', 'Build register and login with bcrypt-hashed passwords, and protect a route with a signed token.',
+        {
+          files: nodeFiles({ files: [locked('/jwt.js')] }),
+          dependencies: { bcryptjs: '^2.4.3' },
+          subtopics: ['Authentication vs authorization', 'Hashing with bcrypt', 'JWT: header, payload, signature', 'Bearer tokens', 'Protecting routes'],
+        }],
     ],
   },
   {

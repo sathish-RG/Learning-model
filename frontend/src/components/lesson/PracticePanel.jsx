@@ -1,6 +1,13 @@
-import { useMemo } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import { useSelector } from 'react-redux';
-import { SandpackCodeEditor, SandpackLayout, SandpackPreview, SandpackProvider } from '@codesandbox/sandpack-react';
+import {
+  SandpackCodeEditor,
+  SandpackLayout,
+  SandpackPreview,
+  SandpackProvider,
+  useSandpack,
+  useSandpackShell,
+} from '@codesandbox/sandpack-react';
 import MissionCard from './MissionCard';
 import LessonConsole from './LessonConsole';
 import EditorToolbar from '../editor/EditorToolbar';
@@ -15,13 +22,17 @@ const TEMPLATE_DEPENDENCIES = {
   node: { express: '^4.21.2' },
 };
 
+// How long the learner must pause typing before a Node server restarts with their edits
+const RESTART_DELAY_MS = 1200;
+
 const providerStyle = { height: '100%', fontFamily: 'inherit' };
 
 // Sizing shared by whatever sits beside the editor
-const OUTPUT_CLASSES = '!min-h-0 !flex-[2_1_0%] lg:!h-full lg:!flex-1';
+const OUTPUT_CLASSES = '!min-h-0 !min-w-0 !flex-[2_1_0%] lg:!h-full lg:!flex-1';
 
 // The panel next to the editor, chosen per lesson (topic.output)
-function OutputPanel({ type }) {
+// `navigator`: an address bar, so Node lessons can visit their GET routes (e.g. /api/tasks)
+function OutputPanel({ type, navigator }) {
   // Pure JavaScript lessons: no page to show, so the console runs the code on its own
   if (type === 'console') {
     return (
@@ -35,7 +46,7 @@ function OutputPanel({ type }) {
   if (type === 'both') {
     return (
       <div className={`flex flex-col ${OUTPUT_CLASSES}`}>
-        <SandpackPreview showOpenInCodeSandbox={false} className="!min-h-0 !flex-[3_1_0%]" />
+        <SandpackPreview showOpenInCodeSandbox={false} showNavigator={navigator} className="!min-h-0 !flex-[3_1_0%]" />
         <div className="flex min-h-0 flex-[2_1_0%] flex-col border-t-2 border-line" aria-label="Console output">
           <LessonConsole />
         </div>
@@ -43,7 +54,41 @@ function OutputPanel({ type }) {
     );
   }
 
-  return <SandpackPreview showOpenInCodeSandbox={false} className={OUTPUT_CLASSES} />;
+  return <SandpackPreview showOpenInCodeSandbox={false} showNavigator={navigator} className={OUTPUT_CLASSES} />;
+}
+
+// Node lessons: the server keeps running the old code after an edit, so restart it
+// (like nodemon) once the learner pauses typing. Bundled templates re-run on their own.
+function NodeAutoRestart() {
+  const { sandpack } = useSandpack();
+  const { restart } = useSandpackShell();
+  const { files, clients } = sandpack;
+  const code = Object.values(files)
+    .map((file) => file.code)
+    .join('\0');
+  const previous = useRef(code);
+
+  useEffect(() => {
+    if (code === previous.current) return undefined;
+    const timer = setTimeout(async () => {
+      previous.current = code;
+      // Sandpack only syncs edits to a Node sandbox once a server has opened a port, so a
+      // script (or a server that crashed on start) would restart with its old files.
+      // Write them into the sandbox's file system first. (`emulator` is Nodebox, from
+      // sandpack-client's Node client; without it we fall back to Sandpack's own sync.)
+      await Promise.all(
+        Object.values(clients).flatMap((client) =>
+          client.emulator?.fs
+            ? Object.entries(files).map(([path, file]) => client.emulator.fs.writeFile(path, file.code).catch(() => {}))
+            : [],
+        ),
+      );
+      restart();
+    }, RESTART_DELAY_MS);
+    return () => clearTimeout(timer);
+  }, [code, files, clients, restart]);
+
+  return null;
 }
 
 // Step 2: the mission instructions plus the Sandpack editor and live preview.
@@ -108,6 +153,7 @@ export default function PracticePanel({ topic, onCompleted }) {
       theme={theme}
       style={providerStyle}
     >
+      {topic.templateType === 'node' && <NodeAutoRestart />}
       <div className="flex h-full min-h-0 flex-col gap-4 overflow-y-auto p-3 sm:p-4">
         <MissionCard markdown={topic.instructions} xpReward={topic.xpReward} xpEarned={xpEarned} />
 
@@ -119,8 +165,8 @@ export default function PracticePanel({ topic, onCompleted }) {
         {/* Desktop: code on the left, output on the right (both full height). Phones: stacked. */}
         <div className="h-[85dvh] min-h-[480px] shrink-0 overflow-hidden rounded-2xl border-2 border-line">
           <SandpackLayout className="!h-full !flex-col !flex-nowrap !rounded-none !border-0 lg:!flex-row">
-            <SandpackCodeEditor showTabs showLineNumbers wrapContent className="!min-h-0 !flex-[3_1_0%] lg:!h-full lg:!flex-1" />
-            <OutputPanel type={topic.output} />
+            <SandpackCodeEditor showTabs showLineNumbers wrapContent className="!min-h-0 !min-w-0 !flex-[3_1_0%] lg:!h-full lg:!flex-1" />
+            <OutputPanel type={topic.output} navigator={topic.templateType === 'node'} />
           </SandpackLayout>
         </div>
       </div>

@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>The Kitchen: Menu</title>
+    <style>
+      body { margin: 0; font-family: system-ui, sans-serif; background: #fffaf3; color: #2b2118; }
+      main { max-width: 640px; margin: 0 auto; padding: 1.25rem; }
+      h1 { margin: 0 0 0.25rem; }
+      .hint { margin: 0 0 1rem; color: #7a6a5a; font-size: 0.9rem; }
+      .filters { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1rem; }
+      button { border: 2px solid #e2c9a6; background: #fff; border-radius: 999px; padding: 0.35rem 0.85rem; font: inherit; cursor: pointer; }
+      button[aria-pressed="true"] { background: #e8833a; border-color: #e8833a; color: #fff; }
+      .request { font-family: ui-monospace, monospace; font-size: 0.85rem; background: #2b2118; color: #f5e6d3; border-radius: 0.5rem; padding: 0.5rem 0.75rem; }
+      .status-ok { color: #8be28b; } .status-bad { color: #ff9a8a; }
+      ul { list-style: none; padding: 0; display: grid; gap: 0.5rem; }
+      li { display: flex; justify-content: space-between; background: #fff; border: 1px solid #f0e0c8; border-radius: 0.75rem; padding: 0.75rem 1rem; }
+      .tag { font-size: 0.75rem; background: #fde3cf; border-radius: 999px; padding: 0.1rem 0.5rem; margin-left: 0.4rem; }
+      .empty { color: #7a6a5a; font-style: italic; }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>🍽️ The Kitchen</h1>
+      <p class="hint">The dining room (this page) asks your API for the menu. Every button sends a GET request.</p>
+      <div class="filters">
+        <button data-url="/api/menu" aria-pressed="true">All</button>
+        <button data-url="/api/menu?category=mains">Mains</button>
+        <button data-url="/api/menu?category=desserts">Desserts</button>
+        <button data-url="/api/menu?category=drinks">Drinks</button>
+        <button data-url="/api/menu?maxPrice=100">Under ₹100</button>
+        <button data-url="/api/menu/specials">⭐ Specials</button>
+        <button data-url="/api/menu/42">Dish #42</button>
+      </div>
+      <p class="request" id="request">…</p>
+      <ul id="dishes"></ul>
+    </main>
+    <script>
+      const list = document.getElementById("dishes");
+      const line = document.getElementById("request");
+
+      async function show(url) {
+        line.textContent = `GET ${url} …`;
+        try {
+          const res = await fetch(url);
+          const data = await res.json();
+          line.innerHTML = `GET ${url} → <span class="${res.ok ? "status-ok" : "status-bad"}">${res.status}</span>`;
+          const dishes = Array.isArray(data) ? data : res.ok ? [data] : [];
+          list.innerHTML = dishes.length
+            ? dishes.map((d) => `<li><span>${d.name}${d.special ? '<span class="tag">⭐ special</span>' : ""}</span><strong>₹${d.price}</strong></li>`).join("")
+            : `<li class="empty">${data.error || "No dishes match."}</li>`;
+        } catch {
+          line.innerHTML = `GET ${url} → <span class="status-bad">no JSON reply yet</span>`;
+          list.innerHTML = '<li class="empty">Write this route in server.js, then try again.</li>';
+        }
+      }
+
+      document.querySelectorAll("button").forEach((button) =>
+        button.addEventListener("click", () => {
+          document.querySelectorAll("button").forEach((b) => b.setAttribute("aria-pressed", String(b === button)));
+          show(button.dataset.url);
+        }),
+      );
+      show("/api/menu");
+    </script>
+  </body>
+</html>

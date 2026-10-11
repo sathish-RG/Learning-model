@@ -16,6 +16,25 @@ import { existsSync, readFileSync } from 'node:fs';
 
 const LESSON_XP = 20;
 
+// React lessons: a hidden entry that renders App.jsx and loads the lesson's locked styles.css.
+// No <StrictMode>: it mounts components twice in development, which would make the effect
+// lessons log "mounted, cleaned up, mounted" and confuse beginners (the lesson explains it).
+const REACT_ENTRY = {
+  filename: '/index.js',
+  hidden: true,
+  content:
+    'import { createRoot } from "react-dom/client";\nimport "./styles.css";\nimport App from "./App.jsx";\n\ncreateRoot(document.getElementById("root")).render(<App />);\n',
+};
+const REACT_STYLES = { filename: '/styles.css', readOnly: true };
+// Extra files: a path string for an editable file, or a full spec, e.g. { filename, readOnly: true }
+const reactFiles = (...files) => [
+  REACT_ENTRY,
+  { filename: '/App.jsx' },
+  ...files.map((file) => (typeof file === 'string' ? { filename: file } : file)),
+  REACT_STYLES,
+];
+const locked = (filename) => ({ filename, readOnly: true });
+
 // A hidden page that runs index.js as a native ES module: the browser itself executes the
 // code, so modern syntax (?. ?? #private, top-level await) and import/export all just work
 const MODULE_PAGE = {
@@ -202,25 +221,50 @@ const PHASES = [
     phase: 6,
     phaseTitle: 'Phase 6: React',
     templateType: 'react',
-    files: [{ filename: '/App.js' }],
+    // The rendered app plus a console, for the logs in the effect and performance lessons
+    output: 'both',
+    files: reactFiles(),
     lessons: [
-      ['components-and-jsx', 'Components & JSX', 'Split a static page into small, reusable components.'],
-      ['props-and-composition', 'Props & Composition', 'Build Card and Button components configured with props and children.'],
-      ['state-and-events', 'State & Events', 'Build a counter and a toggle, and update arrays and objects in state without changing the originals.'],
-      ['lists-keys-and-conditional-rendering', 'Lists, Keys & Conditional Rendering', 'Build a filterable list with correct keys and an "empty list" message.'],
-      ['controlled-forms', 'Controlled Forms', 'Build a sign-up form whose fields are controlled by React state, with validation.'],
-      ['useeffect-and-the-component-lifecycle', 'useEffect & the Component Lifecycle', 'Build a timer that cleans up after itself, and load data when a component first appears.'],
-      ['refs-and-performance', 'Refs & Performance', 'Focus an input with useRef, and speed up a slow list with useMemo, useCallback and memo.'],
-      ['usereducer-and-context', 'useReducer & Context', 'Build a shopping cart with useReducer, and a theme every component can read via Context.'],
-      ['custom-hooks', 'Custom Hooks', 'Write useLocalStorage and useFetch hooks.'],
-      ['react-router', 'React Router', 'Build a multi-page app with a detail page that reads a URL parameter, plus a shared layout.'],
-      ['redux-toolkit', 'Redux Toolkit', 'Move a to-do list into a Redux Toolkit slice, including loading data asynchronously.'],
+      ['components-and-jsx', 'Components & JSX', 'Split a static page into small, reusable components.',
+        { files: reactFiles('/Header.jsx', '/TaskList.jsx', '/Footer.jsx'), subtopics: ['Components', 'JSX rules', 'Expressions in { }', 'Fragments', 'Import & export'] }],
+      ['props-and-composition', 'Props & Composition', 'Build Card and Button components configured with props and children.',
+        { files: reactFiles('/Button.jsx', '/Card.jsx'), subtopics: ['Props', 'Destructuring & defaults', 'children', 'Function props', 'One-way data flow'] }],
+      ['state-and-events', 'State & Events', 'Build a counter and a toggle, and update arrays and objects in state without changing the originals.',
+        { subtopics: ['useState', 'Event handlers', 'Updater functions', 'Immutable arrays', 'Immutable objects'] }],
+      ['lists-keys-and-conditional-rendering', 'Lists, Keys & Conditional Rendering', 'Build a filterable list with correct keys and an "empty list" message.',
+        { subtopics: ['Rendering lists with map', 'Keys', 'Derived data', '&& and ternaries', 'Empty states'] }],
+      ['controlled-forms', 'Controlled Forms', 'Build a sign-up form whose fields are controlled by React state, with validation.',
+        { subtopics: ['Controlled inputs', 'Checkboxes & selects', 'One state object', 'onSubmit', 'Validation from state'] }],
+      ['useeffect-and-the-component-lifecycle', 'useEffect & the Component Lifecycle', 'Build a timer that cleans up after itself, and load data when a component first appears.',
+        { files: reactFiles('/Timer.jsx', locked('/api.js')), subtopics: ['Side effects', 'Dependency arrays', 'Cleanup', 'Loading data', 'StrictMode'] }],
+      ['refs-and-performance', 'Refs & Performance', 'Focus an input with useRef, and speed up a slow list with useMemo, useCallback and memo.',
+        { files: reactFiles(locked('/SlowList.jsx')), subtopics: ['useRef & the DOM', 'Values without re-rendering', 'Why re-renders happen', 'useMemo', 'memo & useCallback'] }],
+      ['usereducer-and-context', 'useReducer & Context', 'Build a shopping cart with useReducer, and a theme every component can read via Context.',
+        { files: reactFiles('/ThemeContext.jsx', '/Toolbar.jsx', '/cartReducer.js', locked('/Header.jsx')), subtopics: ['Prop drilling', 'createContext & Provider', 'useContext', 'useReducer', 'Actions & pure reducers'] }],
+      ['custom-hooks', 'Custom Hooks', 'Write useLocalStorage and useFetch hooks.',
+        { files: reactFiles('/hooks/useLocalStorage.js', '/hooks/useFetch.js', locked('/api.js')), subtopics: ['Custom hooks', 'Rules of hooks', 'Lazy initial state', 'useLocalStorage', 'useFetch'] }],
+      ['react-router', 'React Router', 'Build a multi-page app with a detail page that reads a URL parameter, plus a shared layout.',
+        {
+          files: reactFiles('/Layout.jsx', '/pages/Tasks.jsx', '/pages/TaskDetail.jsx', locked('/pages/Home.jsx'), locked('/data.js')),
+          dependencies: { 'react-router-dom': '^6.26.2' },
+          subtopics: ['Routes & Route', 'Link & NavLink', 'URL parameters', 'Layouts & Outlet', 'useNavigate'],
+        }],
+      ['redux-toolkit', 'Redux Toolkit', 'Move a to-do list into a Redux Toolkit slice, including loading data asynchronously.',
+        {
+          files: reactFiles('/store.js', '/tasksSlice.js', locked('/api.js')),
+          dependencies: { '@reduxjs/toolkit': '^2.2.7', 'react-redux': '^9.1.2' },
+          subtopics: ['Store, slices & actions', 'createSlice & Immer', 'Provider', 'useSelector & useDispatch', 'createAsyncThunk'],
+        }],
     ],
     checkpoint: [
       'checkpoint-react',
       'Checkpoint C: Task Manager Pro in React',
-      'Rebuild Task Manager Pro as a React app with components, state, routing and Redux Toolkit.',
-      { files: [{ filename: '/App.js' }, { filename: '/styles.css' }], milestone: 'Task Manager Pro as a React app.' },
+      'Rebuild Task Manager Pro as a React app: wire up state, props and persistence across its components.',
+      {
+        files: reactFiles('/components/TaskForm.jsx', '/components/TaskList.jsx', '/components/TaskItem.jsx', '/components/FilterBar.jsx'),
+        milestone: 'Task Manager Pro as a React app: components, state, props and persistence.',
+        subtopics: ['Lifting state up', 'Data down, actions up', 'Derived state', 'Controlled forms', 'Effects for storage'],
+      },
     ],
   },
   {
@@ -293,6 +337,7 @@ const toTopic = (phase, lessonType) => ([slug, title, description, overrides = {
   lessonType,
   templateType: phase.templateType,
   output: phase.output ?? 'preview',
+  dependencies: {}, // set explicitly, so a sync also clears packages a lesson no longer needs
   xpReward: lessonType === 'checkpoint' ? CHECKPOINT_XP : LESSON_XP,
   files: phase.files,
   ...overrides,

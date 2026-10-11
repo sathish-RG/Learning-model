@@ -1,0 +1,10 @@
+/* Given styles (locked). */
+* { box-sizing: border-box; }
+body { margin: 0; font-family: system-ui, sans-serif; color: hsl(220 20% 18%); background: hsl(220 30% 97%); }
+.page { padding: 16px; display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); }
+.panel { background: white; border: 1px solid hsl(220 20% 88%); border-radius: 14px; padding: 14px 16px; }
+.panel h2 { margin: 0 0 8px; font-size: 1rem; }
+#count { font-size: 2rem; font-weight: 800; margin: 4px 0 8px; }
+.row { display: flex; flex-wrap: wrap; gap: 6px; }
+button { font: inherit; font-weight: 700; border: 2px solid hsl(220 20% 85%); background: white; border-radius: 10px; padding: 6px 12px; cursor: pointer; }
+.switch { min-width: 70px; }

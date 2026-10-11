@@ -1,0 +1,13 @@
+/* Given styles (locked). NavLink adds the .active class to the current page's link. */
+* { box-sizing: border-box; }
+body { margin: 0; font-family: system-ui, sans-serif; color: hsl(220 20% 18%); background: hsl(220 30% 97%); }
+nav { display: flex; gap: 6px; padding: 12px 16px; background: white; border-bottom: 1px solid hsl(220 20% 88%); }
+nav a { padding: 6px 12px; border-radius: 999px; color: inherit; text-decoration: none; font-weight: 600; }
+nav a.active { background: hsl(160 65% 36%); color: white; }
+main { padding: 16px; }
+h1 { font-size: 1.3rem; margin-top: 0; }
+ul { padding-left: 18px; }
+li { margin-bottom: 6px; }
+a { color: hsl(160 65% 30%); }
+button { font: inherit; font-weight: 600; border: 2px solid hsl(220 20% 85%); background: white; border-radius: 10px; padding: 6px 12px; cursor: pointer; }
+.not-found { color: crimson; font-weight: 700; padding: 16px; }

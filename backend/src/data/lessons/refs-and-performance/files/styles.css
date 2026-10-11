@@ -1,0 +1,9 @@
+/* Given styles (locked). */
+* { box-sizing: border-box; }
+body { margin: 0; font-family: system-ui, sans-serif; color: hsl(220 20% 18%); background: hsl(220 30% 97%); }
+.page { padding: 16px; }
+.row { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-bottom: 10px; }
+input { flex: 1; min-width: 160px; font: inherit; padding: 8px 10px; border: 2px solid hsl(220 20% 85%); border-radius: 10px; }
+button { font: inherit; font-weight: 600; border: 2px solid hsl(220 20% 85%); background: white; border-radius: 10px; padding: 6px 12px; cursor: pointer; }
+.list { list-style: none; padding: 0; margin: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(90px, 1fr)); gap: 6px; }
+.list button { width: 100%; }

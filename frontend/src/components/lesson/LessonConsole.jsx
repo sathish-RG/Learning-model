@@ -55,6 +55,17 @@ const toLines = (chunks) =>
       .map((line, i) => ({ id: `${id}-${i}`, line, isError: isError || ERROR_LINE.test(line) })),
   );
 
+// Text tables (the database lessons' results) are printed one line at a time: keep their
+// lines together in one block, so the box borders join up
+const TABLE_LINE = /^[┌│├└]/;
+const groupTables = (lines) =>
+  lines.reduce((rows, row) => {
+    const last = rows.at(-1);
+    if (TABLE_LINE.test(row.line) && last?.table) last.line += `\n${row.line}`;
+    else rows.push({ ...row, table: TABLE_LINE.test(row.line) });
+    return rows;
+  }, []);
+
 // Like Sandpack's useSandpackShellStdout, but remembers which chunks came from stderr
 // (console.error), so they can be shown in red. Cleared whenever the program restarts.
 function useShellOutput(clientId) {
@@ -83,6 +94,26 @@ function useShellOutput(clientId) {
   return { chunks, reset: () => setChunks([]) };
 }
 
+// The static template (Phase 5's module lessons) never sends "start", so the console's own
+// reset doesn't fire. It sends "done" each time it reloads the page with new code, before
+// that page runs, so clear there. (Bundled templates send "done" AFTER the code has logged.)
+function useStaticRerunReset(clientId, reset) {
+  const { sandpack, listen } = useSandpack();
+  const latest = useRef({ listen, reset });
+  const isStatic = sandpack.environment === 'static';
+
+  useEffect(() => {
+    latest.current = { listen, reset };
+  });
+
+  useEffect(() => {
+    if (!isStatic) return undefined;
+    return latest.current.listen((message) => {
+      if (message.type === 'done' || message.type === 'refresh') latest.current.reset();
+    }, clientId);
+  }, [clientId, isStatic]);
+}
+
 // One console call per row, with its arguments side by side (like browser devtools)
 function ConsoleRow({ method, data }) {
   if (method === 'clear') {
@@ -105,7 +136,8 @@ function ConsoleView({ clientId }) {
     maxMessageCount: 300,
   });
   const shell = useShellOutput(clientId);
-  const serverLines = sandpack.environment === 'node' ? toLines(shell.chunks) : [];
+  useStaticRerunReset(clientId, reset);
+  const serverLines = sandpack.environment === 'node' ? groupTables(toLines(shell.chunks)) : [];
   const listRef = useRef(null);
   const clear = () => {
     reset();
@@ -134,10 +166,12 @@ function ConsoleView({ clientId }) {
         {logs.length === 0 && serverLines.length === 0 && (
           <li className="px-3 py-2 text-muted italic">Nothing logged yet. Use console.log() to print here.</li>
         )}
-        {serverLines.map(({ id, line, isError }) => (
+        {serverLines.map(({ id, line, isError, table }) => (
           <li
             key={id}
-            className={`border-b border-line/60 px-3 py-1.5 whitespace-pre-wrap [overflow-wrap:anywhere] ${isError ? ROW_STYLES.error : ''}`}
+            className={`border-b border-line/60 px-3 py-1.5 ${
+              table ? 'overflow-x-auto leading-tight whitespace-pre' : 'whitespace-pre-wrap [overflow-wrap:anywhere]'
+            } ${isError ? ROW_STYLES.error : ''}`}
           >
             {line}
           </li>

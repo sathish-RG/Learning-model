@@ -1,7 +1,10 @@
-import { existsSync, readFileSync } from 'node:fs';
+import { existsSync, readFileSync, readdirSync } from 'node:fs';
+import { join, relative, sep } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 // The "Zero to Pro" course: source of truth for the Topic collection (synced by src/seed.js).
-// 8 phases, 62 lessons and 4 Task Manager Pro checkpoints, in strict learning order.
+// 8 phases, 62 lessons and 5 Task Manager Pro checkpoints (the last is the Capstone), in strict
+// learning order.
 // Each lesson teaches and practices ONE thing; concepts are only combined at checkpoints.
 //
 // Content lives in one folder per lesson:
@@ -12,7 +15,7 @@ import { existsSync, readFileSync } from 'node:fs';
 //
 // A lesson is published as soon as its lesson.md exists; until then it shows as "coming soon".
 // Each phase sets the Sandpack template, the files a lesson gets and its output panel
-// ('preview', 'console' or 'both'); lessons can override any of them.
+// ('preview', 'console', 'both', or 'none' for a read-only project); lessons can override any of them.
 
 const LESSON_XP = 20;
 
@@ -50,19 +53,57 @@ const CHECKPOINT_XP = 100;
 // sandbox alive so edits can restart it. Server lessons also get a locked test drive
 // (requests.js) that calls the learner's API through a hidden HTTP client (shared/api-client.js),
 // because the preview can only send requests without a body.
+const lessonPath = (slug, ...parts) => new URL(`./lessons/${[slug, ...parts].join('/')}`, import.meta.url);
 const readShared = (name) => readFileSync(new URL(`./shared/${name}`, import.meta.url), 'utf8');
 const NODE_RUNNER = readShared('runner.js');
 const API_CLIENT = { filename: '/api-client.js', readOnly: true, hidden: true, content: readShared('api-client.js') };
-// `entry` is run as `node <entry> <args>`; `files` are extra file paths or full specs
+// `entry` (a path, or a full spec) is run as `node <entry> <args>`; `files` are extra file
+// paths or full specs
 const nodeFiles = ({ entry = '/server.js', args = [], files = [], server = true } = {}) => {
-  const specs = [{ filename: entry }, ...files.map((file) => (typeof file === 'string' ? { filename: file } : file))];
+  const specs = [entry, ...files].map((file) => (typeof file === 'string' ? { filename: file } : file));
   const check = specs.filter((f) => !f.readOnly && f.filename.endsWith('.js')).map((f) => f.filename.slice(1));
-  const config = JSON.stringify({ entry: entry.slice(1), check, args, server });
+  const config = JSON.stringify({ entry: specs[0].filename.slice(1), check, args, server });
   return [
     { filename: '/index.js', hidden: true, content: `const CONFIG = ${config};\n\n${NODE_RUNNER}` },
     ...specs,
     ...(server ? [locked('/requests.js'), API_CLIENT] : []),
   ];
+};
+
+// Database lessons: a hidden grader runs the learner's queries on a fresh practice database,
+// prints the results as tables and marks each one ✅ or ❌ against the lesson's hidden answers.
+const hiddenFile = (filename, content) => ({ filename, readOnly: true, hidden: true, ...(content !== undefined && { content }) });
+const GRADER_UTILS = hiddenFile('/grader-utils.js', readShared('grader-utils.js'));
+// SQL (sql.js: real SQLite): queries.sql is checked against answers.sql, on database.sql
+const sqlFiles = () =>
+  nodeFiles({
+    entry: hiddenFile('/run-queries.js', readShared('sql-grader.js')),
+    files: ['/queries.sql', locked('/database.sql'), hiddenFile('/answers.sql'), GRADER_UTILS],
+    server: false,
+  });
+// MongoDB (mingo, with mongosh's commands): queries.js is checked against answers.js, on data.js
+const mongoFiles = () =>
+  nodeFiles({
+    entry: hiddenFile('/run-queries.js', readShared('mongo-grader.js')),
+    files: ['/queries.js', locked('/data.js'), hiddenFile('/answers.js'), hiddenFile('/mongo.js', readShared('mongo.js')), GRADER_UTILS],
+    server: false,
+  });
+// A lesson's own checks (hidden run-checks.js in its files folder) for the learner's files
+const checkedFiles = (...files) => nodeFiles({ entry: hiddenFile('/run-checks.js'), files: [...files, GRADER_UTILS], server: false });
+const SQL_JS = { 'sql.js': '^1.14.2' };
+const MINGO = { mingo: '^7.2.4' };
+
+// Every file of a project folder (lessons/<slug>/files/<folder>/...), read-only, README first
+const projectFiles = (slug, folder) => {
+  const root = fileURLToPath(lessonPath(slug, 'files'));
+  const walk = (dir) =>
+    readdirSync(dir, { withFileTypes: true }).flatMap((entry) =>
+      entry.isDirectory() ? walk(join(dir, entry.name)) : [join(dir, entry.name)],
+    );
+  return walk(join(root, folder))
+    .map((file) => `/${relative(root, file).split(sep).join('/')}`)
+    .sort((a, b) => b.endsWith('/README.md') - a.endsWith('/README.md') || a.localeCompare(b))
+    .map((filename) => ({ filename, readOnly: true }));
 };
 
 const PHASES = [
@@ -339,27 +380,50 @@ const PHASES = [
   {
     phase: 8,
     phaseTitle: 'Phase 8: Databases',
-    // SQL (sql.js) and MongoDB (mingo) practice runtimes are chosen when this phase is written
+    // Real databases in the sandbox: SQLite (sql.js), MongoDB's query language (mingo) and
+    // Mongoose itself. Results print as tables in the console, each one checked ✅ / ❌.
     templateType: 'node',
-    files: [{ filename: '/index.js' }],
+    output: 'console',
+    files: sqlFiles(),
     lessons: [
-      ['sql-fundamentals', 'SQL Fundamentals', 'Answer questions about a books table with SELECT, WHERE, ORDER BY and LIMIT.'],
-      ['sql-joins-and-aggregates', 'SQL Joins & Aggregates', 'Write an "orders per customer" report using JOIN, GROUP BY and HAVING.'],
-      ['data-modeling-sql-vs-nosql', 'Data Modeling: SQL vs NoSQL', "Design a blog's data both ways: as linked tables, and as embedded vs. referenced documents."],
-      ['mongodb-crud-and-query-operators', 'MongoDB CRUD & Query Operators', 'Query a products collection with $gt, $in, $and, field selection and sorting.'],
-      ['mongodb-aggregation-and-indexes', 'MongoDB Aggregation & Indexes', 'Build a sales report with $match, $group, $lookup and $unwind, and choose the right indexes.'],
-      ['mongoose-schemas-and-validation', 'Mongoose Schemas & Validation', 'Write a schema with validators and custom error messages, then test sample documents against it.'],
+      ['sql-fundamentals', 'SQL Fundamentals', 'Answer 9 questions about a library with SELECT, WHERE, ORDER BY and LIMIT.',
+        { dependencies: SQL_JS, subtopics: ['Why databases', 'Tables, rows & columns', 'SELECT & WHERE', 'ORDER BY & LIMIT', 'IN, BETWEEN & LIKE'] }],
+      ['sql-joins-and-aggregates', 'SQL Joins & Aggregates', "Write a shop's sales reports with JOIN, GROUP BY and HAVING.",
+        { dependencies: SQL_JS, subtopics: ['Primary & foreign keys', 'JOIN', 'LEFT JOIN & IS NULL', 'COUNT, SUM & AVG', 'GROUP BY & HAVING'] }],
+      ['data-modeling-sql-vs-nosql', 'Data Modeling: SQL vs NoSQL', "Design a blog's data both ways: as linked tables, and as documents that embed or reference.",
+        {
+          files: checkedFiles('/schema.sql', '/documents.js'),
+          dependencies: { ...SQL_JS, ...MINGO },
+          subtopics: ['Spreadsheets vs folders', 'Constraints & foreign keys', 'Embedding', 'Referencing', 'Choosing SQL or NoSQL'],
+        }],
+      ['mongodb-crud-and-query-operators', 'MongoDB CRUD & Query Operators', 'Query and change a products collection with find, $gt, $in, $or, projections, sorting and updates.',
+        { files: mongoFiles(), dependencies: MINGO, subtopics: ['Documents & collections', 'find & projections', 'Query operators', 'sort, skip & limit', 'insert, update & delete'] }],
+      ['mongodb-aggregation-and-indexes', 'MongoDB Aggregation & Indexes', 'Build sales reports with $match, $group, $unwind and $lookup, then choose indexes for slow queries.',
+        { files: mongoFiles(), dependencies: MINGO, subtopics: ['The pipeline', '$match & $project', '$group', '$unwind & $lookup', 'Indexes & the ESR rule'] }],
+      ['mongoose-schemas-and-validation', 'Mongoose Schemas & Validation', 'Write a schema with validators and custom error messages, then test sample documents against it.',
+        {
+          files: checkedFiles('/bookSchema.js', locked('/samples.js'), hiddenFile('/expected.js')),
+          dependencies: { mongoose: '^8.19.1' },
+          subtopics: ['Schemas & models', 'Built-in validators', 'Custom messages', 'Custom validators', 'Casting, defaults & strict mode'],
+        }],
     ],
+    // Too big for the sandbox: the finished project to read here, download, and run locally
     checkpoint: [
       'capstone-full-stack',
       'Capstone: Task Manager Pro Full Stack',
-      'Connect your React app to your own Express API and MongoDB database, built on your own machine.',
-      { milestone: 'The complete, full-stack Task Manager Pro.' },
+      'Set up and run the complete Task Manager Pro on your own machine: React, Express and MongoDB, connected.',
+      {
+        templateType: 'static',
+        output: 'none',
+        download: 'task-manager-pro.zip',
+        files: projectFiles('capstone-full-stack', 'task-manager-pro'),
+        milestone: 'The complete, full-stack Task Manager Pro: accounts, a REST API and a MongoDB database behind the React app.',
+        subtopics: ['MongoDB Atlas', 'Environment variables', 'Running the API', 'Running the React app', 'The full request flow'],
+      },
     ],
   },
 ];
 
-const lessonPath = (slug, ...parts) => new URL(`./lessons/${[slug, ...parts].join('/')}`, import.meta.url);
 const readText = (url) => readFileSync(url, 'utf8').trim();
 
 // Adds the Markdown and starter files for lessons that have been written
@@ -391,6 +455,7 @@ const toTopic = (phase, lessonType) => ([slug, title, description, overrides = {
   templateType: phase.templateType,
   output: phase.output ?? 'preview',
   dependencies: {}, // set explicitly, so a sync also clears packages a lesson no longer needs
+  download: '',
   xpReward: lessonType === 'checkpoint' ? CHECKPOINT_XP : LESSON_XP,
   files: phase.files,
   ...overrides,

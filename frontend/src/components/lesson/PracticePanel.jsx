@@ -10,6 +10,7 @@ import {
 } from '@codesandbox/sandpack-react';
 import MissionCard from './MissionCard';
 import LessonConsole from './LessonConsole';
+import ProjectExplorer from './ProjectExplorer';
 import EditorToolbar from '../editor/EditorToolbar';
 import PageLoader from '../ui/PageLoader';
 import ErrorState from '../ui/ErrorState';
@@ -53,6 +54,9 @@ function OutputPanel({ type, navigator }) {
       </div>
     );
   }
+
+  // A project to read and download (the Capstone): the file tree takes the output's place
+  if (type === 'none') return null;
 
   return <SandpackPreview showOpenInCodeSandbox={false} showNavigator={navigator} className={OUTPUT_CLASSES} />;
 }
@@ -99,6 +103,9 @@ export default function PracticePanel({ topic, onCompleted }) {
   const saved = useSavedFiles(topic.slug);
 
   const editable = useMemo(() => topic.files.filter((f) => !f.readOnly && !f.hidden).map((f) => f.filename), [topic.files]);
+  const visible = useMemo(() => topic.files.filter((f) => !f.hidden).map((f) => f.filename), [topic.files]);
+  // A whole project (output 'none'): browse it in a file tree, opening one file at a time
+  const isProject = topic.output === 'none';
 
   // Starting point for each editable file: the learner's saved version, else the starter code
   const initialContents = useMemo(
@@ -125,13 +132,13 @@ export default function PracticePanel({ topic, onCompleted }) {
   );
   const options = useMemo(
     () => ({
-      visibleFiles: topic.files.filter((f) => !f.hidden).map((f) => f.filename),
-      // Open on the first file the learner can edit
-      activeFile: editable[0],
+      visibleFiles: isProject ? visible.slice(0, 1) : visible,
+      // Open on the first file the learner can edit (a read-only project: its first file)
+      activeFile: editable[0] ?? visible[0],
       // Keep Sandpack's default initMode ('lazy'). 'immediate' races the preview's own
       // registration and leaves a stale client, so JavaScript lessons stop re-running on edits.
     }),
-    [topic.files, editable],
+    [visible, editable, isProject],
   );
   // Template defaults plus anything this lesson needs (e.g. react-router-dom)
   const customSetup = useMemo(
@@ -165,7 +172,18 @@ export default function PracticePanel({ topic, onCompleted }) {
         {/* Desktop: code on the left, output on the right (both full height). Phones: stacked. */}
         <div className="h-[85dvh] min-h-[480px] shrink-0 overflow-hidden rounded-2xl border-2 border-line">
           <SandpackLayout className="!h-full !flex-col !flex-nowrap !rounded-none !border-0 lg:!flex-row">
-            <SandpackCodeEditor showTabs showLineNumbers wrapContent className="!min-h-0 !min-w-0 !flex-[3_1_0%] lg:!h-full lg:!flex-1" />
+            {isProject && (
+              <div className="max-h-48 shrink-0 border-b border-line lg:h-full lg:max-h-none lg:w-64 lg:border-r lg:border-b-0">
+                <ProjectExplorer paths={visible} />
+              </div>
+            )}
+            <SandpackCodeEditor
+              showTabs
+              showLineNumbers
+              wrapContent
+              closableTabs={isProject}
+              className="!min-h-0 !min-w-0 !flex-[3_1_0%] lg:!h-full lg:!flex-1"
+            />
             <OutputPanel type={topic.output} navigator={topic.templateType === 'node'} />
           </SandpackLayout>
         </div>

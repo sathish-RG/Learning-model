@@ -2,8 +2,9 @@ import { useEffect, useRef, useState } from 'react';
 import { useBlocker } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { useSandpack } from '@codesandbox/sandpack-react';
-import { Check, CheckCircle2, RotateCcw, Save } from 'lucide-react';
+import { Check, CheckCircle2, Download, RotateCcw, Save } from 'lucide-react';
 import Button from '../ui/Button';
+import { createZip, downloadBlob } from '../../utils/zip';
 import { saveFiles, selectIsTopicCompleted, selectStreak, setTopicStatus } from '../../redux/slices/progressSlice';
 
 const SAVED_MESSAGE_MS = 3000;
@@ -65,6 +66,12 @@ export default function EditorToolbar({ topic, editable, initialContents, onComp
     } finally {
       setStatusPending(false);
     }
+  };
+
+  // Projects (the Capstone): every visible file, as a .zip to unpack and run locally
+  const downloadProject = () => {
+    const files = topic.files.filter((f) => !f.hidden).map((f) => ({ path: f.filename.slice(1), content: f.content }));
+    downloadBlob(createZip(files), topic.download);
   };
 
   // Ctrl/Cmd+S saves, even while the editor has focus
@@ -129,30 +136,42 @@ export default function EditorToolbar({ topic, editable, initialContents, onComp
         {statusText}
       </p>
 
-      <Button
-        variant="ghost"
-        size="sm"
-        onClick={() => sandpack.updateFile(Object.fromEntries(editable.map((name) => [name, starter[name]])))}
-        disabled={atStarter}
-        aria-label="Reset to starter code"
-        title="Reset to starter code (your saved code stays until you save)"
-      >
-        <RotateCcw className="size-4" />
-      </Button>
+      {topic.download && (
+        <Button variant="secondary" size="sm" onClick={downloadProject} title={`Download all the files as ${topic.download}`}>
+          <Download className="size-4" />
+          Download project
+        </Button>
+      )}
 
-      <Button
-        variant="secondary"
-        size="sm"
-        onClick={save}
-        loading={saving}
-        disabled={!dirty}
-        title={`Save code (${SAVE_SHORTCUT})`}
-        className="relative"
-      >
-        {!saving && (dirty ? <Save className="size-4" /> : <Check className="size-4" />)}
-        {dirty || saving ? 'Save' : 'Saved'}
-        {dirty && !saving && <span className="absolute -top-1 -right-1 size-2.5 rounded-full bg-streak" aria-hidden="true" />}
-      </Button>
+      {/* A read-only project has nothing to save or reset */}
+      {editable.length > 0 && (
+        <>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => sandpack.updateFile(Object.fromEntries(editable.map((name) => [name, starter[name]])))}
+            disabled={atStarter}
+            aria-label="Reset to starter code"
+            title="Reset to starter code (your saved code stays until you save)"
+          >
+            <RotateCcw className="size-4" />
+          </Button>
+
+          <Button
+            variant="secondary"
+            size="sm"
+            onClick={save}
+            loading={saving}
+            disabled={!dirty}
+            title={`Save code (${SAVE_SHORTCUT})`}
+            className="relative"
+          >
+            {!saving && (dirty ? <Save className="size-4" /> : <Check className="size-4" />)}
+            {dirty || saving ? 'Save' : 'Saved'}
+            {dirty && !saving && <span className="absolute -top-1 -right-1 size-2.5 rounded-full bg-streak" aria-hidden="true" />}
+          </Button>
+        </>
+      )}
 
       <Button
         variant={completed ? 'secondary' : 'primary'}

@@ -2,8 +2,9 @@ import mongoose from 'mongoose';
 
 export const TEMPLATE_TYPES = ['static', 'vanilla', 'react', 'node'];
 export const LESSON_TYPES = ['lesson', 'checkpoint'];
-// What appears next to the editor: the page, a console for console.log output, or both
-export const OUTPUT_PANELS = ['preview', 'console', 'both'];
+// What appears next to the editor: the page, a console for console.log output, or both.
+// 'none': a read-only project to browse in a file tree instead (the Capstone)
+export const OUTPUT_PANELS = ['preview', 'console', 'both', 'none'];
 export const PHASE_COUNT = 8;
 
 // One file in the practice editor. Paths are Sandpack-style, e.g. "/index.html".
@@ -55,6 +56,8 @@ const topicSchema = new mongoose.Schema(
     lessonContent: { type: String, default: '' },
     instructions: { type: String, default: '' },
     xpReward: { type: Number, default: 20, min: 0 },
+    // When set, the practice step offers every visible file as a .zip with this name
+    download: { type: String, default: '', trim: true },
   },
   {
     timestamps: true,
@@ -82,7 +85,12 @@ topicSchema.pre('validate', function checkLesson() {
   if (!this.published) return;
   if (!this.lessonContent.trim()) this.invalidate('lessonContent', 'A published lesson needs lessonContent');
   if (!this.instructions.trim()) this.invalidate('instructions', 'A published lesson needs instructions');
-  if (!this.editableFilenames().length) this.invalidate('files', 'A published lesson needs at least one editable file');
+  // (A read-only project, output 'none', is browsed and downloaded rather than edited)
+  if (this.output === 'none') {
+    if (!this.files.length) this.invalidate('files', 'A published project needs files');
+  } else if (!this.editableFilenames().length) {
+    this.invalidate('files', 'A published lesson needs at least one editable file');
+  }
   if (this.lessonType === 'checkpoint' && !this.milestone.trim()) {
     this.invalidate('milestone', 'A published checkpoint needs a milestone');
   }

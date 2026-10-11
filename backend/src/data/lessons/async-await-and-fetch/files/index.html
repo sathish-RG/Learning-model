@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Team tasks</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main class="card">
+      <h1>Team tasks</h1>
+      <p id="status" aria-live="polite">Not loaded yet</p>
+      <p id="error" class="error" aria-live="polite"></p>
+      <ul id="task-list"></ul>
+      <div class="buttons">
+        <button id="reload" type="button">Reload</button>
+        <button id="broken" type="button">Load from a broken URL</button>
+      </div>
+    </main>
+
+    <script type="module" src="./app.js"></script>
+  </body>
+</html>

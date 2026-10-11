@@ -1,0 +1,13 @@
+/* Given styles (locked). */
+* { box-sizing: border-box; }
+body { font-family: system-ui, sans-serif; margin: 0; padding: 16px; color: hsl(220 15% 20%); background: hsl(200 30% 97%); }
+.card { background: white; border: 2px solid hsl(200 20% 88%); border-radius: 16px; padding: 20px; max-width: 460px; }
+h1 { font-size: 1.3rem; margin: 0 0 6px; }
+#status { color: hsl(200 30% 40%); font-weight: 600; margin: 0; }
+.error { color: crimson; font-weight: 600; min-height: 1.2em; }
+#task-list { list-style: none; padding: 0; margin: 8px 0 14px; }
+#task-list li { padding: 10px 12px; border-radius: 10px; margin-bottom: 6px; background: hsl(200 30% 96%); }
+#task-list .assignee { color: hsl(200 30% 40%); font-size: 0.875rem; }
+.buttons { display: flex; flex-wrap: wrap; gap: 8px; }
+button { font: inherit; font-weight: 700; border-radius: 10px; border: 2px solid hsl(200 20% 85%); background: white; padding: 8px 14px; cursor: pointer; }
+button:disabled { opacity: 0.5; cursor: wait; }

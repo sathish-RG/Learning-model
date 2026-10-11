@@ -15,6 +15,15 @@ import { existsSync, readFileSync } from 'node:fs';
 // ('preview', 'console' or 'both'); lessons can override any of them.
 
 const LESSON_XP = 20;
+
+// A hidden page that runs index.js as a native ES module: the browser itself executes the
+// code, so modern syntax (?. ?? #private, top-level await) and import/export all just work
+const MODULE_PAGE = {
+  filename: '/index.html',
+  hidden: true,
+  content:
+    '<!DOCTYPE html>\n<html lang="en">\n  <head><meta charset="UTF-8" /></head>\n  <body>\n    <script type="module" src="./index.js"></script>\n  </body>\n</html>\n',
+};
 const CHECKPOINT_XP = 100;
 
 const PHASES = [
@@ -156,17 +165,37 @@ const PHASES = [
   {
     phase: 5,
     phaseTitle: 'Phase 5: Advanced JavaScript',
-    templateType: 'vanilla',
+    // The static runtime + a module script, not the plain-JS runtime: its older compiler
+    // can't parse ?. or ??, which this phase teaches
+    templateType: 'static',
     output: 'console',
-    files: [{ filename: '/index.js' }],
+    files: [MODULE_PAGE, { filename: '/index.js' }],
     lessons: [
-      ['closures-and-hoisting', 'Closures & Hoisting', "Build a counter whose value can't be changed from outside, and fix the classic loop-closure bug."],
-      ['this-call-apply-bind-and-prototypes', 'this, call/apply/bind & Prototypes', 'Fix a this that gets lost in callbacks, and share a method through a prototype.'],
-      ['classes-and-oop', 'Classes & OOP', 'Model bank accounts with class, extends, static and private #fields.'],
-      ['modern-syntax-and-es-modules', 'Modern Syntax & ES Modules', 'Rewrite older code using destructuring, ?. and ??, and import/export.'],
-      ['callbacks-promises-and-the-event-loop', 'Callbacks, Promises & the Event Loop', 'Predict the order of console logs, and convert a callback-based API to Promises.'],
-      ['async-await-and-fetch', 'Async/Await & Fetch', 'Load data from a mock API with loading and error states, including Promise.all.'],
-      ['functional-patterns', 'Functional Patterns', 'Write your own debounce, throttle, pipe and curry helpers.'],
+      ['closures-and-hoisting', 'Closures & Hoisting', "Build a counter whose value can't be changed from outside, and fix the classic loop-closure bug.",
+        { subtopics: ['Closures', 'Private data', 'Function factories', 'var vs let in loops', 'Hoisting & the TDZ'] }],
+      ['this-call-apply-bind-and-prototypes', 'this, call/apply/bind & Prototypes', 'Fix a this that gets lost in callbacks, and share a method through a prototype.',
+        { subtopics: ['What this means', 'Losing this', 'bind', 'call & apply', 'Prototypes & the chain'] }],
+      ['classes-and-oop', 'Classes & OOP', 'Model bank accounts with class, extends, static and private #fields.',
+        { subtopics: ['class & constructor', 'Private #fields & getters', 'extends & super', 'Overriding', 'static'] }],
+      ['modern-syntax-and-es-modules', 'Modern Syntax & ES Modules', 'Rewrite older code using destructuring, ?. and ??, and import/export.',
+        { files: [MODULE_PAGE, { filename: '/index.js' }, { filename: '/utils.js' }], subtopics: ['Destructuring', 'Spread & rest', 'Optional chaining ?.', 'Nullish coalescing ??', 'import & export'] }],
+      ['callbacks-promises-and-the-event-loop', 'Callbacks, Promises & the Event Loop', 'Predict the order of console logs, and convert a callback-based API to Promises.',
+        { subtopics: ['The event loop', 'Microtasks vs tasks', 'Callbacks', 'Promises', 'Promisifying & chaining'] }],
+      ['async-await-and-fetch', 'Async/Await & Fetch', 'Load data from a mock API with loading and error states, including Promise.all.',
+        {
+          // Real fetch requests to JSON files served next to the page, shown with the page + console
+          output: 'both',
+          files: [
+            { filename: '/index.html', readOnly: true },
+            { filename: '/styles.css', readOnly: true },
+            { filename: '/data/tasks.json', readOnly: true },
+            { filename: '/data/users.json', readOnly: true },
+            { filename: '/app.js' },
+          ],
+          subtopics: ['async & await', 'fetch & response.ok', 'Loading & error states', 'try / catch / finally', 'Promise.all'],
+        }],
+      ['functional-patterns', 'Functional Patterns', 'Write your own debounce, throttle, pipe and curry helpers.',
+        { subtopics: ['Higher-order functions', 'Immutability', 'pipe', 'curry', 'debounce & throttle'] }],
     ],
   },
   {

@@ -88,7 +88,11 @@ export default function PracticePanel({ topic, onCompleted }) {
     }),
     [topic.files, editable],
   );
-  const customSetup = useMemo(() => ({ dependencies: TEMPLATE_DEPENDENCIES[topic.templateType] }), [topic.templateType]);
+  // Template defaults plus anything this lesson needs (e.g. react-router-dom)
+  const customSetup = useMemo(
+    () => ({ dependencies: { ...TEMPLATE_DEPENDENCIES[topic.templateType], ...topic.dependencies } }),
+    [topic.templateType, topic.dependencies],
+  );
 
   if (saved.status === 'error') {
     return <ErrorState title="Couldn't load your saved code" message={saved.error} onRetry={saved.retry} />;

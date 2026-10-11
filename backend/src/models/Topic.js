@@ -49,6 +49,8 @@ const topicSchema = new mongoose.Schema(
     templateType: { type: String, required: true, enum: TEMPLATE_TYPES },
     output: { type: String, enum: OUTPUT_PANELS, default: 'preview' },
     files: { type: [fileSchema], default: [] },
+    // Extra npm packages for the practice sandbox, e.g. { "react-router-dom": "^6.26.0" }
+    dependencies: { type: mongoose.Schema.Types.Mixed, default: {} },
     // Markdown, rendered as plain text + formatting on the client (no raw HTML)
     lessonContent: { type: String, default: '' },
     instructions: { type: String, default: '' },
